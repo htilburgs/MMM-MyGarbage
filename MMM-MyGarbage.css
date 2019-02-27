@@ -1,0 +1,41 @@
+.MMM-MyGarbage .garbage-container {
+  line-height: 1.50;
+  font-size: 20px;
+  margin: 0;
+  padding: 0;
+  border-bottom: solid 1px #222;
+  position: relative;
+  text-align: left
+}
+
+.MMM-MyGarbage .garbage-container .garbage-date {
+  color: #FFF;
+}
+
+.MMM-MyGarbage .garbage-container .garbage-icon-container {
+  white-space: nowrap;
+  position: absolute;
+  right : 0px;
+  top: 6px;
+  line-height: 24px;
+}
+
+.MMM-MyGarbage .garbage-container .garbage-icon-container .garbage-icon {
+  width: 24px;
+  height: 24px;
+  fill: currentColor;
+  vertical-align: bottom;
+  display: inline;
+  position: relative;
+  margin-left:4px;
+}
+
+.MMM-MyGarbage .garbage-container .garbage-icon-container .garbage-icon.greenbin {
+  fill: #00A651;
+}
+.MMM-MyGarbage .garbage-container .garbage-icon-container .garbage-icon.garbagebin {
+  fill: #787878;
+}
+.MMM-MyGarbage .garbage-container .garbage-icon-container .garbage-icon.paperbin {
+  fill: #0059ff;
+}
