@@ -91,6 +91,7 @@ Module.register('MMM-MyGarbage', {
       dateContainer.classList.add("garbage-date");
 
       //Formats Garbage Pickup Date
+      moment.locale();
       var today = moment().startOf("day");
       var pickUpDate = moment(pickup.pickupDate);
       if (today.isSame(pickUpDate)) {
@@ -100,7 +101,7 @@ Module.register('MMM-MyGarbage', {
       } else if (moment(today).add(7, "days").isAfter(pickUpDate)) {
         dateContainer.innerHTML = pickUpDate.format("dddd");
       } else {
-        dateContainer.innerHTML = pickUpDate.format("dddd D MMMM");
+        dateContainer.innerHTML = pickUpDate.format('dddd LL');
       }
       
       pickupContainer.appendChild(dateContainer);
