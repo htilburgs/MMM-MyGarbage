@@ -103,4 +103,4 @@ The software is provided “as is”, without warranty of any kind, express or i
 
 #### Note
 The original script is from Jeff Clarke `MMM-MyWastePickup` and only for the Toronto area.
-Now it has become a general script, to use in all areas all over the world.
+Now it has become a general script, to use in all areas all over the world. 
