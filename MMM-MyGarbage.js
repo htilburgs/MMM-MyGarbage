@@ -3,7 +3,9 @@ Module.register('MMM-MyGarbage', {
   // Default values
   defaults: {
     weeksToDisplay: 2,
-    limitTo: 99
+    limitTo: 99,
+    fade: true,
+    fadePoint: 0.25     // Start on 1/4th of the list.
   },
 
   // Define stylesheet
@@ -56,6 +58,17 @@ Module.register('MMM-MyGarbage', {
       wrapper.className = "dimmed light small";
       return wrapper;
     }
+    
+    // Start Fade effect
+    if (this.config.fade && this.config.fadePoint < 1) {
+			  if (this.config.fadePoint < 0) {
+				    this.config.fadePoint = 0;
+		}
+			var startFade = this.nextPickups.length * this.config.fadePoint;
+			var fadeSteps = this.nextPickups.length - startFade;
+		}
+      var currentFadeStep = 0;
+    // End Fade effect
 
     // this.nextPickups.forEach( function(pickup) {
     for (i = 0; i < this.nextPickups.length; i++) {
@@ -105,6 +118,13 @@ Module.register('MMM-MyGarbage', {
       pickupContainer.appendChild(iconContainer);
       wrapper.appendChild(pickupContainer);
 
+      // Start Fading
+      if (i >= startFade) {	//fading
+	      currentFadeStep = i - startFade;
+	      pickupContainer.style.opacity = 1 - (1 / fadeSteps * currentFadeStep);
+      }
+      // End Fading
+      
     };
 
     return wrapper;
