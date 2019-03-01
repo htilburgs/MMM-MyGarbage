@@ -1,3 +1,7 @@
+// Version v1.1.0
+// Update: 01-03-2019
+// Added Fade option
+
 Module.register('MMM-MyGarbage', {
 
   // Default values
