@@ -25,7 +25,9 @@ Add the module to your modules array in your config.js.
   header: 'My Garbage Calendar',
   config: {
           weeksToDisplay: 2,
-          limitTo: 99
+          limitTo: 99,
+          fade: true,
+          fadePoint: 0.25
   }
 },
 ```
@@ -43,11 +45,21 @@ Here is the documentation of options for the modules configuration:
   <tbody>
     <tr>
       <td><code>weeksToDisplay</code></td>
-      <td>How many weeks into the future to show collection dates.<br /><br /><strong>Number</strong><br />Default: <code>2</code>.</td>
+      <td>How many weeks into the future to show collection dates.<br /><br /><strong>Number</strong><br />Default: <code>2</code></td>
     </tr>
     <tr>
       <td><code>limitTo</code></td>
-      <td>Limit the display to the spcified number of pickups.<br /><br /><strong>Number</strong><br />Default: <code>99</code>.</td>
+      <td>Limit the display to the spcified number of pickups.<br /><br /><strong>Number</strong><br />Default: <code>99</code></td>
+    </tr>
+    <tr>
+      <td><code>fade</code></td>
+      <td>Fade the future events to black. (Gradient).<br /><strong><br />Default: </strong><code>true</code><br /><strong>Possible values: </strong><code>true</code> or <code>false</code>
+      </td>
+    </tr>
+        <tr>
+      <td><code>fadePoint</code></td>
+      <td>Where to start fade?<br /><strong><br />Default: </strong><code>0.25</code><br /><strong>Possible values: </strong><code>0</code> (top of the list) - <code>1</code> (bottom of list)
+      </td>
     </tr>
   </tbody>
 </table>
