@@ -8,6 +8,7 @@ Module.register('MMM-MyGarbage', {
   defaults: {
     weeksToDisplay: 2,
     limitTo: 99,
+    dateFormat: "dddd D MMMM",
     fade: true,
     fadePoint: 0.25     // Start on 1/4th of the list.
   },
@@ -17,6 +18,23 @@ Module.register('MMM-MyGarbage', {
     return ["MMM-MyGarbage.css"];
   },  
 
+  // Define required scripts.
+  getScripts: function () {
+     return ["moment.js"];
+  },
+
+  // Define required translations.
+  getTranslations: function () {
+ 	// The translations for the default modules are defined in the core translation files.
+	// Therefor we can just return false. Otherwise we should have returned a dictionary.
+	// If you're trying to build your own module including translations, check out the documentation.
+     return false;
+  },
+
+  capFirst: function (string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+  },
+	
   start: function() {
     Log.info('Starting module: ' + this.name);
     this.nextPickups = [];
@@ -99,9 +117,9 @@ Module.register('MMM-MyGarbage', {
       } else if (moment(today).add(1, "days").isSame(pickUpDate)) {
         dateContainer.innerHTML = this.translate("TOMORROW");
       } else if (moment(today).add(7, "days").isAfter(pickUpDate)) {
-        dateContainer.innerHTML = pickUpDate.format("dddd");
+        dateContainer.innerHTML = this.capFirst(pickUpDate.format("dddd"));
       } else {
-        dateContainer.innerHTML = pickUpDate.format('dddd LL');
+        dateContainer.innerHTML = this.capFirst(pickUpDate.format(this.config.dateFormat));
       }
       
       pickupContainer.appendChild(dateContainer);
