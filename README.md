@@ -52,6 +52,10 @@ Here is the documentation of options for the modules configuration:
       <td>Limit the display to the spcified number of pickups.<br /><br /><strong>Number</strong><br />Default: <code>99</code></td>
     </tr>
     <tr>
+      <td><code>dateFormat</code></td>
+      <td>Format to use for the date of events <br /><br /><strong>Default: </strong><code>MMMM D</code> (e.g. January 18)<br /><stroing>Possible values: </strong>See Moment.js format</td>
+    </tr>
+    <tr>
       <td><code>fade</code></td>
       <td>Fade the future events to black. (Gradient).<br /><strong><br />Default: </strong><code>true</code><br /><strong>Possible values: </strong><code>true</code> or <code>false</code>
       </td>
