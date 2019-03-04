@@ -53,7 +53,7 @@ Here is the documentation of options for the modules configuration:
     </tr>
     <tr>
       <td><code>dateFormat</code></td>
-      <td>Format to use for the date of events <br /><br /><strong>Default: </strong><code>MMMM D</code> (e.g. January 18)<br /><stroing>Possible values: </strong>See [Moment.js format](https://momentjs.com/)</td>
+      <td>Format to use for the date of events <br /><br /><strong>Default: </strong><code>MMMM D</code> (e.g. January 18)<br /><strong>Possible values: </strong>See https://momentjs.com/</td>
     </tr>
     <tr>
       <td><code>fade</code></td>
