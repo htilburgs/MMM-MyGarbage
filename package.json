@@ -2,6 +2,9 @@
   "name": "mmmmygarbage",
   "version": "1.0.0",
   "description": "MagicMirror module for garbage pickup schedule",
+  "repository": {
+  "type": "git",
+  "url": "git+https://github.com/htilburgs/MMM-MyGarbage.git"
   "main": "MMM-MyGarbage.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
