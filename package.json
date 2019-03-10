@@ -1,6 +1,6 @@
 {
   "name": "MMM-MyGarbage",
-  "version": "1.0.0",
+  "version": "1.1.2",
   "description": "MagicMirror module for garbage pickup schedule",
   "repository": {
     "type": "git",
