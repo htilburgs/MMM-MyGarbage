@@ -27,7 +27,7 @@ Add the module to your modules array in your config.js.
           weeksToDisplay: 2,
           limitTo: 99,
           fade: true,
-          dateFormat: dddd D MMMM,
+          dateFormat: "dddd D MMMM",
           fadePoint: 0.25
   }
 },
@@ -77,12 +77,14 @@ An example file `garbage_schedule.csv` is added.
 Create a CSV based on the following template:
 
 ```
-WeekStarting,green,gray,cornflowerblue
+WeekStarting,green,gray,blue
 03/07/18,1,0,1
 03/14/18,1,1,1
 03/21/18,1,0,1
 03/28/18,1,1,1
 ```
+
+Default there are 3 bins defined (green, gray and blue) If you need more garbage bins, simply add an extra column in the `garbage_schedule.csv` file. The name is the color you like the bin to have. 
 
 Add lines for each garbage pickup date as needed.
 The date format needs to be specified as `MM/DD/YY` (e.g.: 05/28/18 for 28-May-2018)
@@ -96,10 +98,10 @@ Possible Values for colors:
 * Any HEX-Color (#FF0000, #8c8c8c, etc)
 * Any rgb, rgba or hsl value **if in double quotes** ("rgb(128,65,98)", "rgba(134,56,32,0.5)", "hsl(0, 100%, 50%)", etc.)
 
-The following is VERY important:
+The following is **VERY** important:
 * The CSV file must be delimited using commas
 * The date format needs to be specified as `MM/DD/YY` (e.g.: 05/28/18 for 28-May-2018)
-* The remaining fields of each line specify whether the particular waste product is scheduled to be picked up on the given date. A value of `0` means no pick up. A value of ANYTHING ELSE means the product will be picked up.  Using the first pick up date entry in the template above, `1,0,1` means that `green` and `cornflowerblue` will be picked up on that date, while `gray` will not be picked up.
+* The remaining fields of each line specify whether the particular waste product is scheduled to be picked up on the given date. A value of `0` means no pick up. A value of ANYTHING ELSE means the product will be picked up.  Using the first pick up date entry in the template above, `1,0,1` means that `green` and `blue` will be picked up on that date, while `gray` will not be picked up.
 
 Save the file as `garbage_schedule.csv` in the `MMM-MyGarbage` directory and restart Magic Mirror²
 
