@@ -24,6 +24,7 @@ Add the module to your modules array in your config.js.
   position: 'top_left',
   header: 'My Garbage Calendar',
   config: {
+          alert: 4,
           weeksToDisplay: 2,
           limitTo: 99,
           fade: true,
@@ -55,6 +56,10 @@ Here is the documentation of options for the modules configuration:
     <tr>
       <td><code>dateFormat</code></td>
       <td>Format to use for the date of events <br /><br /><strong>Default: </strong><code>dddd D MMMM</code> (e.g. January 18)<br /><strong>Possible values: </strong>See https://momentjs.com/</td>
+    </tr>
+    <tr>
+      <td><code>alert</code></td>
+      <td>(optional) Show alert, if remaining entries in csv file fall under this threshold<br /><br /><strong>Number</strong><br />Default: <code>false</code></td>
     </tr>
     <tr>
       <td><code>fade</code></td>
