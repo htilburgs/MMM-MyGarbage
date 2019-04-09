@@ -2,6 +2,7 @@ Module.register('MMM-MyGarbage', {
 
   // Default values
   defaults: {
+    alert: false,
     weeksToDisplay: 2,
     limitTo: 99,
     dateFormat: "dddd D MMMM",
@@ -21,10 +22,10 @@ Module.register('MMM-MyGarbage', {
 
   // Define required translations.
   getTranslations: function () {
-    // The translations for the default modules are defined in the core translation files.
-    // Therefor we can just return false. Otherwise we should have returned a dictionary.
-    // If you're trying to build your own module including translations, check out the documentation.
-    return false;
+    return {
+      en: "translations/en.json",
+      de: "translations/de.json"
+    }
   },
 
   capFirst: function (string) {
@@ -33,6 +34,7 @@ Module.register('MMM-MyGarbage', {
 
   start: function () {
     Log.info('Starting module: ' + this.name);
+    this.sendSocketNotification('MMM-MYGARBAGE-CONFIG', this.config);
     this.nextPickups = [];
     this.getPickups();
     this.timer = null;
@@ -55,6 +57,13 @@ Module.register('MMM-MyGarbage', {
     if (notification == "MMM-MYGARBAGE-RESPONSE" + this.identifier && payload.length > 0) {
       this.nextPickups = payload;
       this.updateDom(1000);
+    } else if (notification == "MMM-MYGARBAGE-NOENTRIES") { //Pass Alert on
+      this.sendNotification("SHOW_ALERT", {
+        title: this.translate("GARBAGEENTRIESLEFT", { entriesLeft: payload }),
+        message: this.translate("REMEMBERADDINGPICKUPS"),
+        imageFA: "recycle",
+        timer: "3000"
+      });
     }
   },
 

@@ -14,26 +14,30 @@ module.exports = NodeHelper.create({
   socketNotificationReceived: function (notification, payload) {
 
     var self = this;
-
-    if (this.schedule == null) {
-      //Load and parse the data file; Set up variables.
-
-      var scheduleFile = this.garbageScheduleCSVFile;
-
-      fs.readFile(scheduleFile, "utf8", function (err, rawData) {
-        if (err) throw err;
-        parse(rawData, { delimiter: ",", columns: true, ltrim: true }, function (err, parsedData) {
-          if (err) throw err;
-
-          self.schedule = parsedData;
-          self.postProcessSchedule();
-          self.getNextPickups(payload);
-        });
-      });
-    } else {
-      this.getNextPickups(payload);
+    if (notification == "MMM-MYGARBAGE-CONFIG") {
+      this.config = payload;
     }
+    else if (notification == "MMM-MYGARBAGE-GET") {
 
+      if (this.schedule == null) {
+        //Load and parse the data file; Set up variables.
+
+        var scheduleFile = this.garbageScheduleCSVFile;
+
+        fs.readFile(scheduleFile, "utf8", function (err, rawData) {
+          if (err) throw err;
+          parse(rawData, { delimiter: ",", columns: true, ltrim: true }, function (err, parsedData) {
+            if (err) throw err;
+
+            self.schedule = parsedData;
+            self.postProcessSchedule();
+            self.getNextPickups(payload);
+          });
+        });
+      } else {
+        this.getNextPickups(payload);
+      }
+    }
   },
 
   postProcessSchedule: function () {
@@ -52,7 +56,16 @@ module.exports = NodeHelper.create({
   getNextPickups: function (payload) {
     var start = moment().startOf("day"); //today, 12:00 AM
     var end = moment().startOf("day").add(payload.weeksToDisplay * 7, "days");
+    
+    //If nextPickups has only this.config.alert entries left, send alert
+    var remainingPickups = this.schedule.filter(function (obj) {
+      return obj.Calendar == payload.collectionCalendar &&
+        obj.pickupDate.isSameOrAfter(start);
+    });
 
+    if (this.config.alert && remainingPickups.length <= this.config.alert) {
+      this.sendSocketNotification("MMM-MYGARBAGE-NOENTRIES", remainingPickups.length);
+    }
     //find info for next pickup dates
     var nextPickups = this.schedule.filter(function (obj) {
       return obj.Calendar == payload.collectionCalendar &&
