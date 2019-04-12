@@ -23,6 +23,7 @@ Module.register('MMM-MyGarbage', {
   // Define required translations.
   getTranslations: function () {
     return {
+      nl: "translations/nl.json",
       en: "translations/en.json",
       de: "translations/de.json"
     }
