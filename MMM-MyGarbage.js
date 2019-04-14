@@ -107,8 +107,8 @@ Module.register('MMM-MyGarbage', {
       if (this.config.fadePoint < 0) {
         this.config.fadePoint = 0;
       }
-      var startFade = this.nextPickups.length * this.config.fadePoint;
-      var fadeSteps = this.nextPickups.length - startFade;
+      var startFade = Math.min(this.nextPickups.length, this.config.limitTo) * this.config.fadePoint;
+      var fadeSteps = Math.min(this.nextPickups.length, this.config.limitTo) - startFade;
     }
     var currentFadeStep = 0;
     // End Fade effect
