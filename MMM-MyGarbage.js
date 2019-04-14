@@ -24,6 +24,7 @@ Module.register('MMM-MyGarbage', {
   getTranslations: function () {
     return {
       en: "translations/en.json",
+      nl: "translations/nl.json",
       de: "translations/de.json"
     }
   },
