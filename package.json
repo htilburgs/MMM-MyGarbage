@@ -13,7 +13,7 @@
   "author": "Harm Tilburgs",
   "license": "MIT",
   "dependencies": {
-    "csv-parse": "^4.4.6",
+    "csv-parse": "^4.6.3",
     "fs": "0.0.1-security",
     "install": "^0.12.2",
     "moment": "^2.24.0"
