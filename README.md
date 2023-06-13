@@ -82,11 +82,11 @@ An example file `garbage_schedule.csv` is added.
 Create a CSV based on the following template:
 
 ```
-WeekStarting,green,gray,blue
-03/07/18,1,0,1
-03/14/18,1,1,1
-03/21/18,1,0,1
-03/28/18,1,1,1
+WeekStarting,Greenbin,GarbageBin,PaperBin,PMDBin,OtherBin
+03/07/18,1,0,1,0,0
+03/14/18,1,1,1,0,0
+03/21/18,1,0,1,0,1
+03/28/18,1,1,1,1,0
 ```
 
 Default there are 3 bins defined (green, gray and blue) If you need more garbage bins, simply add an extra column in the `garbage_schedule.csv` file. The name is the color you like the bin to have. 
@@ -99,6 +99,8 @@ Possible Values for colors:
   * GreenBin (defaults to #00A651)
   * GarbageBin (defaults to #787878)
   * PaperBin (defaults to #0059ff)
+  * PMDBin (defaults to #ffff00)
+  * OtherBin (defaults to #B87333)
 * Any CSS color string (red, chocolate, cornflowerblue, etc..)
 * Any HEX-Color (#FF0000, #8c8c8c, etc)
 * Any rgb, rgba or hsl value **if in double quotes** ("rgb(128,65,98)", "rgba(134,56,32,0.5)", "hsl(0, 100%, 50%)", etc.)
