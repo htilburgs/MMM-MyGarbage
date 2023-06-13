@@ -84,6 +84,12 @@ Module.register('MMM-MyGarbage', {
       case 'PaperBin':
         svg.setAttributeNS(null, "style", "fill: #0059ff");
         break;
+      case 'GFTBin':
+        svg.setAttributeNS(null, "style", "fill: #ffff00");
+        break;
+      case 'OtherBin':
+        svg.setAttributeNS(null, "style", "fill: #C19A6B");
+        break;
       default:
         svg.setAttributeNS(null, "style", "fill: " + color);
         break;
