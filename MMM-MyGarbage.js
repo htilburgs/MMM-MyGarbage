@@ -10,6 +10,7 @@ Module.register('MMM-MyGarbage', {
     collectionCalendar: "default",
     dataSource: "csv",
     icalUrl: "",
+    debug: false,  // <-- enable debug overlay
     binColors: {
       GreenBin: "#00A651",
       PaperBin: "#0059ff",
@@ -56,7 +57,7 @@ Module.register('MMM-MyGarbage', {
 
   socketNotificationReceived: function(notification, payload) {
     if (notification === "MMM-MYGARBAGE-RESPONSE"+this.identifier && payload.length>0) {
-      // Sort frontend again just in case
+      // sort pickups by date
       this.nextPickups = payload.sort((a,b) => a.pickupDate - b.pickupDate);
       this.updateDom(1000);
     } else if (notification === "MMM-MYGARBAGE-NOENTRIES") {
@@ -128,6 +129,26 @@ Module.register('MMM-MyGarbage', {
       }
 
       wrapper.appendChild(pickupContainer);
+    }
+
+    // --- Debug overlay ---
+    if (this.config.debug) {
+      const debugDiv = document.createElement("div");
+      debugDiv.classList.add("garbage-debug");
+      debugDiv.style.fontSize = "0.7em";
+      debugDiv.style.marginTop = "5px";
+      debugDiv.style.color = "red";
+      debugDiv.style.whiteSpace = "pre-line";
+
+      let debugText = "DEBUG: Next Pickups Loaded:\n";
+      this.nextPickups.forEach(pickup => {
+        const dateStr = moment(pickup.pickupDate).format("YYYY-MM-DD");
+        const activeBins = bins.filter(bin => pickup[bin]).join(", ");
+        debugText += `${dateStr} -> ${activeBins}\n`;
+      });
+
+      debugDiv.innerText = debugText;
+      wrapper.appendChild(debugDiv);
     }
 
     return wrapper;
