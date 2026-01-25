@@ -1,7 +1,7 @@
-var NodeHelper = require("node_helper");
-var fs = require('fs');
-var parse = require("csv-parse");
-var moment = require("moment");
+const NodeHelper = require("node_helper");
+const fs = require("fs");
+const parse = require("csv-parse");
+const moment = require("moment");
 
 module.exports = NodeHelper.create({
 
@@ -12,26 +12,17 @@ module.exports = NodeHelper.create({
   },
 
   socketNotificationReceived: function (notification, payload) {
-
-    var self = this;
-    if (notification == "MMM-MYGARBAGE-CONFIG") {
+    if (notification === "MMM-MYGARBAGE-CONFIG") {
       this.config = payload;
-    }
-    else if (notification == "MMM-MYGARBAGE-GET") {
-
-      if (this.schedule == null) {
-        //Load and parse the data file; Set up variables.
-
-        var scheduleFile = this.garbageScheduleCSVFile;
-
-        fs.readFile(scheduleFile, "utf8", function (err, rawData) {
+    } else if (notification === "MMM-MYGARBAGE-GET") {
+      if (!this.schedule) {
+        fs.readFile(this.garbageScheduleCSVFile, "utf8", (err, rawData) => {
           if (err) throw err;
-          parse(rawData, { delimiter: ",", columns: true, ltrim: true }, function (err, parsedData) {
+          parse(rawData, { delimiter: ",", columns: true, ltrim: true }, (err, parsedData) => {
             if (err) throw err;
-
-            self.schedule = parsedData;
-            self.postProcessSchedule();
-            self.getNextPickups(payload);
+            this.schedule = parsedData;
+            this.postProcessSchedule();
+            this.getNextPickups(payload);
           });
         });
       } else {
@@ -41,40 +32,39 @@ module.exports = NodeHelper.create({
   },
 
   postProcessSchedule: function () {
-    this.schedule.forEach(function (obj) {
-      for (var key in obj) {
-        //Convert date strings to moment.js Date objects
-        if (key == "WeekStarting")
+    this.schedule.forEach(obj => {
+      for (let key in obj) {
+        if (key === "WeekStarting" && !obj.pickupDate) {
           obj.pickupDate = moment(obj.WeekStarting, "MM/DD/YY");
-        //Reassign strings to booleans for particular waste type
-        else if (key != "WeekStarting" && key != "pickupDate")
+        } else if (key !== "WeekStarting" && key !== "pickupDate") {
           obj[key] = obj[key] !== "0";
+        }
       }
     });
   },
 
   getNextPickups: function (payload) {
-    var start = moment().startOf("day"); //today, 12:00 AM
-    var end = moment().startOf("day").add(payload.weeksToDisplay * 7, "days");
-    
-    //If nextPickups has only this.config.alert entries left, send alert
-    var remainingPickups = this.schedule.filter(function (obj) {
-      return obj.Calendar == payload.collectionCalendar &&
-        obj.pickupDate.isSameOrAfter(start);
-    });
+    const start = moment().startOf("day");
+    const end = moment().startOf("day").add(payload.weeksToDisplay * 7, "days");
+
+    // Remaining pickups for alert
+    const remainingPickups = this.schedule.filter(obj =>
+      obj.Calendar === payload.collectionCalendar &&
+      obj.pickupDate.isSameOrAfter(start)
+    );
 
     if (this.config.alert && remainingPickups.length <= this.config.alert) {
       this.sendSocketNotification("MMM-MYGARBAGE-NOENTRIES", remainingPickups.length);
     }
-    //find info for next pickup dates
-    var nextPickups = this.schedule.filter(function (obj) {
-      return obj.Calendar == payload.collectionCalendar &&
-        obj.pickupDate.isSameOrAfter(start) &&
-        obj.pickupDate.isBefore(end);
-    });
 
-    this.sendSocketNotification('MMM-MYGARBAGE-RESPONSE' + payload.instanceId, nextPickups);
+    // Next pickups in date range
+    const nextPickups = this.schedule.filter(obj =>
+      obj.Calendar === payload.collectionCalendar &&
+      obj.pickupDate.isSameOrAfter(start) &&
+      obj.pickupDate.isBefore(end)
+    );
 
+    this.sendSocketNotification("MMM-MYGARBAGE-RESPONSE" + payload.instanceId, nextPickups);
   }
 
 });
