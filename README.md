@@ -29,6 +29,7 @@ Add the module to your modules array in your config.js.
                 weeksToDisplay: 4,
                 limitTo: 99,
                 dateFormat: "dddd LL",
+                alert: true,
                 fade:true,
                 fadePoint: 0.25,
                 dataSource: "ical",                         // csv (schedule_garbage.csv | ical (put URL in icalUrl)
@@ -89,11 +90,37 @@ Here is the documentation of options for the modules configuration:
       <td>Where to start fade?<br /><strong><br />Default: </strong><code>0.25</code><br /><strong>Possible values: </strong><code>0</code> (top of the list) - <code>1</code> (bottom of list)
       </td>
     </tr>
+        <tr>
+      <td><code>dataSource</code></td>
+      <td>Select datasource your're using<br /><strong><br />Default: </strong><code>"csv"</code><br /><strong>Possible values: </strong><code>"csv" or "ical" </code>
+      </td>
+    </tr>
+        <tr>
+      <td><code>icalUrl</code></td>
+      <td>Fill in your (public) ical URL<br />Only use in combination with dataSourc: "ical" 
+      </td>
+    </tr>
+        <tr>
+      <td><code>debug</code></td>
+      <td>For debugging the module when failure<br /><strong><br />Default: </strong><code>false</code><br /><strong>Possible values: </strong><code>true</code> or <code>false</code>
+      </td>
+    </tr>
+ <tr>
+      <td><code>binColors</code></td>
+      <td>Define your own Bin Colors<br />
+      </td>
+    </tr>
+<tr>
+      <td><code>icalBinMap</code></td>
+      <td>Define the names as provided in the iCal Calendar.<br />The names will be matches with the type of Bin.<br />If there is no match, otherBin wil be used.<br/>
+      </td>
+    </tr>
+  </tbody>
+</table>
   </tbody>
 </table>
 
-### Example config
-## Creating and using your Garbage Schedule
+## Creating and using your Garbage Schedule for use with dataSource CSV
 You can use this module by creating your own Garbage Schedule file with the name `garbage_schedule.csv` 
 An example file `garbage_schedule.csv` is added.
 
@@ -112,7 +139,7 @@ Default there are 3 bins defined (green, gray and blue) If you need more garbage
 Add lines for each garbage pickup date as needed.
 The date format needs to be specified as `MM/DD/YY` (e.g.: 05/28/18 for 28-May-2018)
 
-Possible Values for colors:
+Colors can be defined in the config.js file:
 * Legacy Values:
   * GreenBin (defaults to #00A651)
   * GarbageBin (defaults to #787878)
@@ -144,3 +171,10 @@ The software is provided “as is”, without warranty of any kind, express or i
 #### Note
 The original script is from Jeff Clarke `MMM-MyWastePickup` and only for the Toronto area.
 Now it has become a general script, to use in all areas all over the world. 
+
+# Version
+1.0.0        : Initial version
+1.0.1        : Minor changes
+2.0.0        : Changed for use with CSV or with iCal Calendar
+
+
