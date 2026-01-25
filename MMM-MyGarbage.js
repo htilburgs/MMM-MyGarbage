@@ -56,7 +56,8 @@ Module.register('MMM-MyGarbage', {
 
   socketNotificationReceived: function(notification, payload) {
     if (notification === "MMM-MYGARBAGE-RESPONSE"+this.identifier && payload.length>0) {
-      this.nextPickups = payload;
+      // Sort frontend again just in case
+      this.nextPickups = payload.sort((a,b) => a.pickupDate - b.pickupDate);
       this.updateDom(1000);
     } else if (notification === "MMM-MYGARBAGE-NOENTRIES") {
       this.sendNotification("SHOW_ALERT", {
