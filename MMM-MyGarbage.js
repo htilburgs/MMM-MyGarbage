@@ -8,8 +8,15 @@ Module.register('MMM-MyGarbage', {
     fade: true,
     fadePoint: 0.25,
     collectionCalendar: "default",
-    dataSource: "csv", // "csv" or "ical"
-    icalUrl: ""         // URL of iCal if using iCal
+    dataSource: "csv",       // "csv" or "ical"
+    icalUrl: "",              // URL of iCal if using iCal
+    binColors: {              // Customizable bin colors
+      GreenBin: "#00A651",
+      GarbageBin: "#787878",
+      PaperBin: "#0059ff",
+      PMDBin: "#ffff00",
+      OtherBin: "#B87333"
+    }
   },
 
   getStyles: function () {
@@ -73,20 +80,23 @@ Module.register('MMM-MyGarbage', {
   },
 
   svgIconFactory: function (type) {
-    const colors = {
-      GreenBin: "#00A651",
-      GarbageBin: "#787878",
-      PaperBin: "#0059ff",
-      PMDBin: "#ffff00",
-      OtherBin: "#B87333"
-    };
+    // Normalize bin names: remove spaces, lowercase
+    const bin = type.replace(/\s+/g, "").toLowerCase();
+
+    // Normalize configured colors
+    const colors = {};
+    for (const key in this.config.binColors) {
+      colors[key.toLowerCase().replace(/\s+/g, "")] = this.config.binColors[key];
+    }
+
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     svg.setAttributeNS(null, "class", "garbage-icon");
-    svg.setAttributeNS(null, "style", "fill: " + (colors[type] || type));
+    svg.setAttributeNS(null, "style", "fill: " + (colors[bin] || "#787878")); // default gray
 
     const use = document.createElementNS("http://www.w3.org/2000/svg", "use");
     use.setAttributeNS("http://www.w3.org/1999/xlink", "href", this.file("garbage_icons.svg#bin"));
     svg.appendChild(use);
+
     return svg;
   },
 
