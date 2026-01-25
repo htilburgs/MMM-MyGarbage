@@ -44,8 +44,10 @@ module.exports = NodeHelper.create({
   postProcessCSV: function () {
     this.schedule.forEach(obj => {
       for (let key in obj) {
-        if (key === "WeekStarting" && !obj.pickupDate) obj.pickupDate = moment(obj.WeekStarting, ["MM/DD/YY","YYYY-MM-DD"]);
-        else if (key !== "WeekStarting" && key !== "pickupDate") obj[key] = obj[key] !== "0";
+        if (key === "WeekStarting" && !obj.pickupDate)
+          obj.pickupDate = moment(obj.WeekStarting, ["MM/DD/YY", "YYYY-MM-DD"]);
+        else if (key !== "WeekStarting" && key !== "pickupDate")
+          obj[key] = obj[key] !== "0";
       }
     });
   },
@@ -65,12 +67,20 @@ module.exports = NodeHelper.create({
       for (let k in events) {
         const ev = events[k];
         if (ev.type === "VEVENT") {
-          const pickup = { pickupDate: moment(ev.start) };
-          // Assume event title matches bin type
-          pickup[ev.summary.replace(/\s+/g, "")] = true;
-          this.schedule.push(pickup);
+          const pickupDate = moment(ev.start);
+          const pickup = { pickupDate };
+
+          // Map event title to bins (comma-separated)
+          const bins = ev.summary.split(",").map(b => b.trim().replace(/\s+/g, ""));
+          bins.forEach(bin => { if (bin) pickup[bin] = true; });
+
+          // Merge if same day already exists
+          const existing = this.schedule.find(p => p.pickupDate.isSame(pickupDate, "day"));
+          if (existing) Object.assign(existing, pickup);
+          else this.schedule.push(pickup);
         }
       }
+
       this.sendNextPickups(payload);
     } catch (e) {
       console.error("iCal Load Error:", e);
@@ -82,8 +92,7 @@ module.exports = NodeHelper.create({
     const end = moment().startOf("day").add(payload.weeksToDisplay * 7, "days");
 
     const nextPickups = this.schedule.filter(obj =>
-      obj.pickupDate.isSameOrAfter(start) &&
-      obj.pickupDate.isBefore(end)
+      obj.pickupDate.isSameOrAfter(start) && obj.pickupDate.isBefore(end)
     );
 
     if (this.config.alert && nextPickups.length <= this.config.alert) {
