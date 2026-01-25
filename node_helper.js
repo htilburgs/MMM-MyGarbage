@@ -3,7 +3,7 @@ const fs = require("fs");
 const moment = require("moment");
 const axios = require("axios");
 const ical = require("node-ical");
-const { parse } = require("csv-parse"); // ✅ CSV v5 compatible
+const { parse } = require("csv-parse"); 
 
 module.exports = NodeHelper.create({
 
@@ -61,7 +61,7 @@ module.exports = NodeHelper.create({
     });
   },
 
-  // --- iCal Loader (robust) ---
+  // --- iCal Loader ---
   loadICal: async function(payload) {
     try {
       if (this.debug) console.log("[MyGarbage] Loading iCal URL:", payload.icalUrl);
