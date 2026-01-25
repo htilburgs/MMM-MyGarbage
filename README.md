@@ -1,5 +1,5 @@
 # MMM-MyGarbage
-This a module for [Magic Mirror²](https://github.com/MichMich/MagicMirror).
+This a module for [MagicMirror²](https://github.com/MichMich/MagicMirror).
 This displays the schedule for your Garbage pickup. It supports multiple types of garbage bins.
 You can show the schedule using a CSV file (garbage_schedule.csv) of by using an ical URL.
 
