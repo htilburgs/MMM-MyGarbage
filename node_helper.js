@@ -16,6 +16,8 @@ module.exports = NodeHelper.create({
   socketNotificationReceived: async function(notification, payload) {
     if (notification === "MMM-MYGARBAGE-CONFIG") {
       this.config = payload;
+      this.debug = this.config.debug || false;
+      if (this.debug) console.log("[MyGarbage] Config received:", this.config);
     } else if (notification === "MMM-MYGARBAGE-GET") {
       if (payload.dataSource === "ical") {
         await this.loadICal(payload);
@@ -28,14 +30,16 @@ module.exports = NodeHelper.create({
   // --- CSV Loader ---
   loadCSV: function(payload) {
     if (this.schedule.length === 0) {
+      if (this.debug) console.log("[MyGarbage] Loading CSV file:", this.garbageScheduleCSVFile);
       fs.readFile(this.garbageScheduleCSVFile, "utf8", (err, rawData) => {
-        if (err) return console.error("CSV Read Error:", err);
+        if (err) return console.error("[MyGarbage] CSV Read Error:", err);
 
         parse(rawData, { delimiter: ",", columns: true, ltrim: true }, (err, parsedData) => {
-          if (err) return console.error("CSV Parse Error:", err);
+          if (err) return console.error("[MyGarbage] CSV Parse Error:", err);
 
           this.schedule = parsedData;
           this.postProcessCSV();
+          if (this.debug) console.log("[MyGarbage] CSV Loaded. Total entries:", this.schedule.length);
           this.sendNextPickups(payload);
         });
       });
@@ -49,7 +53,6 @@ module.exports = NodeHelper.create({
       if (!obj.pickupDate && obj.WeekStarting) {
         obj.pickupDate = moment(obj.WeekStarting, ["MM/DD/YY","YYYY-MM-DD"]);
       }
-      // convert CSV keys to true/false
       for (let key in obj) {
         if (key !== "pickupDate" && key !== "WeekStarting") {
           obj[key] = obj[key] !== "0";
@@ -61,6 +64,7 @@ module.exports = NodeHelper.create({
   // --- iCal Loader ---
   loadICal: async function(payload) {
     try {
+      if (this.debug) console.log("[MyGarbage] Loading iCal URL:", payload.icalUrl);
       let events;
       if (payload.icalUrl.startsWith("http")) {
         const res = await axios.get(payload.icalUrl);
@@ -81,20 +85,21 @@ module.exports = NodeHelper.create({
           const eventName = ev.summary.toLowerCase();
           for (const key in map) {
             if (key.toLowerCase() === eventName) {
-              pickup[map[key]] = true; // map to standard bin key
+              pickup[map[key]] = true;
             }
           }
 
-          // merge multiple bins on same day
           const existing = this.schedule.find(p => p.pickupDate.isSame(pickupDate, "day"));
           if (existing) Object.assign(existing, pickup);
           else this.schedule.push(pickup);
         }
       }
 
+      if (this.debug) console.log("[MyGarbage] iCal loaded. Total pickups:", this.schedule.length);
       this.sendNextPickups(payload);
+
     } catch (e) {
-      console.error("iCal Load Error:", e);
+      console.error("[MyGarbage] iCal Load Error:", e);
     }
   },
 
@@ -118,7 +123,9 @@ module.exports = NodeHelper.create({
     let nextPickups = this.schedule
       .filter(obj => obj.pickupDate.isSameOrAfter(start) && obj.pickupDate.isBefore(end))
       .map(p => this.normalizePickupBins(p, payload.icalBinMap))
-      .sort((a,b) => a.pickupDate - b.pickupDate); // <-- sort by date ascending
+      .sort((a,b) => a.pickupDate - b.pickupDate);
+
+    if (this.debug) console.log("[MyGarbage] Next pickups to send:", nextPickups);
 
     if (this.config.alert && nextPickups.length <= this.config.alert) {
       this.sendSocketNotification("MMM-MYGARBAGE-NOENTRIES", nextPickups.length);
