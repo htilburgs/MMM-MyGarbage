@@ -1,9 +1,9 @@
 const NodeHelper = require("node_helper");
 const fs = require("fs");
-const parse = require("csv-parse");
 const moment = require("moment");
-const ical = require("node-ical");
 const axios = require("axios");
+const ical = require("node-ical");
+const { parse } = require("csv-parse"); 
 
 module.exports = NodeHelper.create({
 
@@ -34,6 +34,7 @@ module.exports = NodeHelper.create({
       fs.readFile(this.garbageScheduleCSVFile, "utf8", (err, rawData) => {
         if (err) return console.error("[MyGarbage] CSV Read Error:", err);
 
+        // csv-parse v5 callback style
         parse(rawData, { delimiter: ",", columns: true, ltrim: true }, (err, parsedData) => {
           if (err) return console.error("[MyGarbage] CSV Parse Error:", err);
 
@@ -66,6 +67,7 @@ module.exports = NodeHelper.create({
     try {
       if (this.debug) console.log("[MyGarbage] Loading iCal URL:", payload.icalUrl);
       let events;
+
       if (payload.icalUrl.startsWith("http")) {
         const res = await axios.get(payload.icalUrl);
         events = ical.parseICS(res.data);
@@ -93,13 +95,13 @@ module.exports = NodeHelper.create({
             }
           }
 
-          // If no mapping found, automatically assign to OtherBin
+          // Unknown events automatically go to OtherBin
           if (!mapped) {
             pickup["OtherBin"] = true;
             if (this.debug) console.log(`[MyGarbage] Unknown pickup '${ev.summary}' mapped to OtherBin`);
           }
 
-          // merge multiple bins on same day
+          // Merge multiple bins on same day
           const existing = this.schedule.find(p => p.pickupDate.isSame(pickupDate, "day"));
           if (existing) Object.assign(existing, pickup);
           else this.schedule.push(pickup);
@@ -114,15 +116,13 @@ module.exports = NodeHelper.create({
     }
   },
 
-  // --- Normalize pickup keys ---
-  normalizePickupBins: function(pickup, binMap) {
+  // --- Normalize pickup bins ---
+  normalizePickupBins: function(pickup) {
     const standardBins = ["GreenBin","PaperBin","GarbageBin","PMDBin","OtherBin"];
     const normalized = { pickupDate: pickup.pickupDate };
-
     standardBins.forEach(bin => {
       if (pickup[bin]) normalized[bin] = true;
     });
-
     return normalized;
   },
 
@@ -133,7 +133,7 @@ module.exports = NodeHelper.create({
 
     let nextPickups = this.schedule
       .filter(obj => obj.pickupDate.isSameOrAfter(start) && obj.pickupDate.isBefore(end))
-      .map(p => this.normalizePickupBins(p, payload.icalBinMap))
+      .map(p => this.normalizePickupBins(p))
       .sort((a,b) => a.pickupDate - b.pickupDate);
 
     if (this.debug) console.log("[MyGarbage] Next pickups to send:", nextPickups);
