@@ -17,9 +17,15 @@ module.exports = NodeHelper.create({
     } else if (notification === "MMM-MYGARBAGE-GET") {
       if (!this.schedule) {
         fs.readFile(this.garbageScheduleCSVFile, "utf8", (err, rawData) => {
-          if (err) throw err;
+          if (err) {
+            console.error("Error reading CSV file:", err);
+            return;
+          }
           parse(rawData, { delimiter: ",", columns: true, ltrim: true }, (err, parsedData) => {
-            if (err) throw err;
+            if (err) {
+              console.error("Error parsing CSV:", err);
+              return;
+            }
             this.schedule = parsedData;
             this.postProcessSchedule();
             this.getNextPickups(payload);
@@ -35,34 +41,30 @@ module.exports = NodeHelper.create({
     this.schedule.forEach(obj => {
       for (let key in obj) {
         if (key === "WeekStarting" && !obj.pickupDate) {
-          obj.pickupDate = moment(obj.WeekStarting, "MM/DD/YY");
+          // Accept multiple date formats
+          obj.pickupDate = moment(obj.WeekStarting, ["MM/DD/YY", "YYYY-MM-DD"]);
         } else if (key !== "WeekStarting" && key !== "pickupDate") {
-          obj[key] = obj[key] !== "0";
+          obj[key] = obj[key] !== "0"; // Convert to boolean
         }
       }
     });
+    console.log("Post-processed schedule rows:", this.schedule.length);
   },
 
   getNextPickups: function (payload) {
     const start = moment().startOf("day");
     const end = moment().startOf("day").add(payload.weeksToDisplay * 7, "days");
 
-    // Remaining pickups for alert
-    const remainingPickups = this.schedule.filter(obj =>
-      obj.Calendar === payload.collectionCalendar &&
-      obj.pickupDate.isSameOrAfter(start)
-    );
-
-    if (this.config.alert && remainingPickups.length <= this.config.alert) {
-      this.sendSocketNotification("MMM-MYGARBAGE-NOENTRIES", remainingPickups.length);
-    }
-
-    // Next pickups in date range
+    // TEMP: Ignore collectionCalendar for debugging
     const nextPickups = this.schedule.filter(obj =>
-      obj.Calendar === payload.collectionCalendar &&
-      obj.pickupDate.isSameOrAfter(start) &&
-      obj.pickupDate.isBefore(end)
+      obj.pickupDate.isSameOrAfter(start) && obj.pickupDate.isBefore(end)
     );
+
+    console.log("Next pickups to send:", nextPickups.length);
+
+    if (nextPickups.length === 0) {
+      console.warn("No pickups found in the CSV within the next", payload.weeksToDisplay, "weeks.");
+    }
 
     this.sendSocketNotification("MMM-MYGARBAGE-RESPONSE" + payload.instanceId, nextPickups);
   }
