@@ -8,8 +8,8 @@ Module.register('MMM-MyGarbage', {
     fade: true,
     fadePoint: 0.25,
     collectionCalendar: "default",
-    dataSource: "csv",  // "csv" or "ical"
-    icalUrl: ""          // URL of iCal file if using iCal
+    dataSource: "csv", // "csv" or "ical"
+    icalUrl: ""         // URL of iCal if using iCal
   },
 
   getStyles: function () {
