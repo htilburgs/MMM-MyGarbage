@@ -1,6 +1,7 @@
 # MMM-MyGarbage
 This a module for [Magic Mirror²](https://github.com/MichMich/MagicMirror).
-This displays the schedule for your Garbage pickup. It supports multiple types of garbage bins.
+This displays the schedule for your Garbage pickup. It supports multiple types of garbage bins.</br>
+You can show the schedule using a CSV file (garbage_schedule.csv) of by using an ical URL.
 
 ![Screenshot](screenshot.png)
 
@@ -20,17 +21,34 @@ Add the module to your modules array in your config.js.
 
 ```
 {
-  module: 'MMM-MyGarbage',
-  position: 'top_left',
-  header: 'My Garbage Calendar',
-  config: {
-          alert: 4,
-          weeksToDisplay: 2,
-          limitTo: 99,
-          fade: true,
-          dateFormat: "dddd D MMMM",
-          fadePoint: 0.25
-  }
+        module: 'MMM-MyGarbage',
+        position: 'top_right',
+        header: "My Garbage Calendar",
+        disabled: false,
+        config: {
+                weeksToDisplay: 4,
+                limitTo: 99,
+                dateFormat: "dddd LL",
+                fade:true,
+                fadePoint: 0.25,
+                dataSource: "ical",                         // csv (schedule_garbage.csv | ical (put URL in icalUrl)
+                icalUrl: "PLACE_HERE_PUBLIC_ICAL_URL",      // only used if dataSource is "ical"
+                debug: false,                               // Only set on true for debugging 
+                binColors: {                                // Define custom Bin Colors
+                            GreenBin: "#00A651",
+                            PaperBin: "#0059ff",
+                            GarbageBin: "#787878",
+                            PMDBin: "#ffff00",
+                            OtherBin: "#B87333"
+                            },
+                icalBinMap: {                                // Map iCal event names to standard bin names
+                            "PAPIER": "PaperBin",
+                            "GFT": "GreenBin",
+                            "PMD": "PMDBin",
+                            "REST": "GarbageBin",
+                            "KERSTBOOM": "OtherBin",
+                            }
+                }
 },
 ```
 
