@@ -14,7 +14,14 @@ git clone https://github.com/htilburgs/MMM-MyGarbage.git
 cd MMM-MyGarbage
 npm install 
 ```
+## Update
+When you need to update this module:
 
+```
+cd ~/MagicMirror/modules/MMM-MyGarbage
+git pull
+npm install
+```
 ## Configuration
 Go to the MagicMirror/config directory and edit the config.js file.
 Add the module to your modules array in your config.js.
