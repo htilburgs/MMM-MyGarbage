@@ -9,11 +9,11 @@ Module.register('MMM-MyGarbage', {
     fadePoint: 0.25,
     collectionCalendar: "default",
     dataSource: "csv",       // "csv" or "ical"
-    icalUrl: "",              // URL of iCal if using iCal
+    icalUrl: "",
     binColors: {              // Customizable bin colors
       GreenBin: "#00A651",
-      GarbageBin: "#787878",
       PaperBin: "#0059ff",
+      GarbageBin: "#787878",
       PMDBin: "#ffff00",
       OtherBin: "#B87333"
     }
@@ -44,7 +44,6 @@ Module.register('MMM-MyGarbage', {
     Log.info('Starting module: ' + this.name);
     this.nextPickups = [];
     this.timer = null;
-
     this.sendSocketNotification('MMM-MYGARBAGE-CONFIG', this.config);
     this.getPickups();
   },
@@ -58,7 +57,8 @@ Module.register('MMM-MyGarbage', {
       instanceId: this.identifier,
       collectionCalendar: this.config.collectionCalendar,
       dataSource: this.config.dataSource,
-      icalUrl: this.config.icalUrl
+      icalUrl: this.config.icalUrl,
+      icalBinMap: this.config.icalBinMap || {}
     });
 
     const self = this;
@@ -79,8 +79,8 @@ Module.register('MMM-MyGarbage', {
     }
   },
 
+  // --- SVG Icon Factory ---
   svgIconFactory: function (type) {
-    // Normalize bin names: remove spaces, lowercase
     const bin = type.replace(/\s+/g, "").toLowerCase();
 
     // Normalize configured colors
@@ -122,6 +122,7 @@ Module.register('MMM-MyGarbage', {
       const pickupContainer = document.createElement("div");
       pickupContainer.classList.add("garbage-container");
 
+      // Date
       const dateContainer = document.createElement("span");
       dateContainer.classList.add("garbage-date");
       const today = moment().startOf("day");
@@ -134,14 +135,18 @@ Module.register('MMM-MyGarbage', {
 
       pickupContainer.appendChild(dateContainer);
 
+      // Icons — only standard bins
       const iconContainer = document.createElement("span");
       iconContainer.classList.add("garbage-icon-container");
-      for (const key in pickup) {
-        if (key !== "pickupDate" && pickup[key]) iconContainer.appendChild(this.svgIconFactory(key));
-      }
+
+      const bins = ["GreenBin", "PaperBin", "GarbageBin", "PMDBin", "OtherBin"];
+      bins.forEach(bin => {
+        if (pickup[bin]) iconContainer.appendChild(this.svgIconFactory(bin));
+      });
 
       pickupContainer.appendChild(iconContainer);
 
+      // Fade effect
       if (i >= startFade && fadeSteps > 0) {
         pickupContainer.style.opacity = 1 - ((i - startFade) / fadeSteps);
       }
