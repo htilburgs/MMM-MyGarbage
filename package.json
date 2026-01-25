@@ -1,8 +1,12 @@
 {
-  "name": "MMM-MyGarbage",
+  "name": "MMM-Garbage",
   "version": "2.0.0",
-  "description": "MagicMirror module for displaying garbage pickup dates from CSV or iCal",
-  "main": "node_helper.js",
+  "description": "MagicMirror² module for displaying garbage pickup dates from CSV or iCal",
+  "main": "MMM-MyGarbage.js",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {},
   "author": "H. Tilburgs",
   "license": "MIT",
   "dependencies": {
