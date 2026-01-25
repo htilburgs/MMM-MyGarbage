@@ -50,16 +50,16 @@ module.exports = NodeHelper.create({
         if (key === "WeekStarting" && !obj.pickupDate) {
           obj.pickupDate = moment(obj.WeekStarting, ["MM/DD/YY", "YYYY-MM-DD"]);
         } else if (key !== "WeekStarting" && key !== "pickupDate") {
-          // Normalize bin names: remove spaces, lowercase
+          // Convert CSV keys to standard bin keys if possible
           const normalizedKey = key.replace(/\s+/g, "").toLowerCase();
           obj[normalizedKey] = obj[key] !== "0";
-          if (normalizedKey !== key) delete obj[key]; // remove original key
+          if (normalizedKey !== key) delete obj[key];
         }
       }
     });
   },
 
-  // --- iCal Loader with configurable mapping ---
+  // --- iCal Loader ---
   loadICal: async function (payload) {
     try {
       let events;
@@ -71,8 +71,6 @@ module.exports = NodeHelper.create({
       }
 
       this.schedule = [];
-
-      // Get iCal-to-bin mapping from config
       const map = payload.icalBinMap || {};
 
       for (let k in events) {
@@ -81,15 +79,11 @@ module.exports = NodeHelper.create({
           const pickupDate = moment(ev.start);
           const pickup = { pickupDate };
 
-          // Split title by comma in case multiple bins, lowercase + trim
           const bins = ev.summary.split(",").map(b => b.trim().toLowerCase());
           bins.forEach(bin => {
-            if (bin && map[bin]) {
-              pickup[map[bin]] = true; // use standard bin key
-            }
+            if (bin && map[bin]) pickup[map[bin]] = true;
           });
 
-          // Merge bins if same day already exists
           const existing = this.schedule.find(p => p.pickupDate.isSame(pickupDate, "day"));
           if (existing) Object.assign(existing, pickup);
           else this.schedule.push(pickup);
@@ -97,10 +91,21 @@ module.exports = NodeHelper.create({
       }
 
       this.sendNextPickups(payload);
-
     } catch (e) {
       console.error("iCal Load Error:", e);
     }
+  },
+
+  // --- Normalize pickup keys to standard bins ---
+  normalizePickupBins: function (pickup) {
+    const standardBins = ["GreenBin", "PaperBin", "GarbageBin", "PMDBin", "OtherBin"];
+    const normalized = { pickupDate: pickup.pickupDate };
+
+    standardBins.forEach(bin => {
+      if (pickup[bin]) normalized[bin] = true;
+    });
+
+    return normalized;
   },
 
   // --- Send pickups to frontend ---
@@ -108,12 +113,10 @@ module.exports = NodeHelper.create({
     const start = moment().startOf("day");
     const end = moment().startOf("day").add(payload.weeksToDisplay * 7, "days");
 
-    // Filter pickups within the display range
-    const nextPickups = this.schedule.filter(obj =>
-      obj.pickupDate.isSameOrAfter(start) && obj.pickupDate.isBefore(end)
-    );
+    let nextPickups = this.schedule
+      .filter(obj => obj.pickupDate.isSameOrAfter(start) && obj.pickupDate.isBefore(end))
+      .map(p => this.normalizePickupBins(p)); // normalize bin keys
 
-    // Send alert if configured
     if (this.config.alert && nextPickups.length <= this.config.alert) {
       this.sendSocketNotification("MMM-MYGARBAGE-NOENTRIES", nextPickups.length);
     }
