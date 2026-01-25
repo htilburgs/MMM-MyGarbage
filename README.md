@@ -172,9 +172,9 @@ The software is provided “as is”, without warranty of any kind, express or i
 The original script is from Jeff Clarke `MMM-MyWastePickup` and only for the Toronto area.
 Now it has become a general script, to use in all areas all over the world. 
 
-# Version
-1.0.0        : Initial version
-1.0.1        : Minor changes
+## Versions
+1.0.0        : Initial version </br>
+1.0.1        : Minor changes </br>
 2.0.0        : Changed for use with CSV or with iCal Calendar
 
 
