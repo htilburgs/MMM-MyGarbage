@@ -1,4 +1,7 @@
 {
-    "GARBAGEENTRIESLEFT": "Only {entriesLeft} entries in garbage calendar",
-    "REMEMBERADDINGPICKUPS": "Be sure to add new entries for further use"
+  "LOADING": "Loading...",
+  "TODAY": "Today",
+  "TOMORROW": "Tomorrow",
+  "GARBAGEENTRIESLEFT": "{entriesLeft} garbage pickups remaining",
+  "REMEMBERADDINGPICKUPS": "Remember to add new pickups"
 }
