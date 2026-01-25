@@ -1,4 +1,7 @@
 {
-    "GARBAGEENTRIESLEFT": "Nog maar {entriesLeft} items in de garbage kalender",
-    "REMEMBERADDINGPICKUPS": "Zorg dat je nieuwe datums toevoegt voor verder gebruik!"
+  "LOADING": "Laden...",
+  "TODAY": "Vandaag",
+  "TOMORROW": "Morgen",
+  "GARBAGEENTRIESLEFT": "Nog {entriesLeft} ophaalmomenten beschikbaar",
+  "REMEMBERADDINGPICKUPS": "Vergeet niet nieuwe ophaalmomenten toe te voegen"
 }

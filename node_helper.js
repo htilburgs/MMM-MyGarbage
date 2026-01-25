@@ -1,80 +1,148 @@
-var NodeHelper = require("node_helper");
-var fs = require('fs');
-var parse = require("csv-parse");
-var moment = require("moment");
+const NodeHelper = require("node_helper");
+const fs = require("fs");
+const moment = require("moment");
+const axios = require("axios");
+const ical = require("node-ical");
+const { parse } = require("csv-parse"); 
 
 module.exports = NodeHelper.create({
 
   start: function () {
     console.log("Starting node_helper for module: " + this.name);
-    this.schedule = null;
+    this.schedule = [];
     this.garbageScheduleCSVFile = this.path + "/garbage_schedule.csv";
   },
 
-  socketNotificationReceived: function (notification, payload) {
-
-    var self = this;
-    if (notification == "MMM-MYGARBAGE-CONFIG") {
+  socketNotificationReceived: async function(notification, payload) {
+    if (notification === "MMM-MYGARBAGE-CONFIG") {
       this.config = payload;
-    }
-    else if (notification == "MMM-MYGARBAGE-GET") {
-
-      if (this.schedule == null) {
-        //Load and parse the data file; Set up variables.
-
-        var scheduleFile = this.garbageScheduleCSVFile;
-
-        fs.readFile(scheduleFile, "utf8", function (err, rawData) {
-          if (err) throw err;
-          parse(rawData, { delimiter: ",", columns: true, ltrim: true }, function (err, parsedData) {
-            if (err) throw err;
-
-            self.schedule = parsedData;
-            self.postProcessSchedule();
-            self.getNextPickups(payload);
-          });
-        });
+      this.debug = this.config.debug || false;
+      if (this.debug) console.log("[MyGarbage] Config received:", this.config);
+    } else if (notification === "MMM-MYGARBAGE-GET") {
+      if (payload.dataSource === "ical") {
+        await this.loadICal(payload);
       } else {
-        this.getNextPickups(payload);
+        this.loadCSV(payload);
       }
     }
   },
 
-  postProcessSchedule: function () {
-    this.schedule.forEach(function (obj) {
-      for (var key in obj) {
-        //Convert date strings to moment.js Date objects
-        if (key == "WeekStarting")
-          obj.pickupDate = moment(obj.WeekStarting, "MM/DD/YY");
-        //Reassign strings to booleans for particular waste type
-        else if (key != "WeekStarting" && key != "pickupDate")
+  // --- CSV Loader ---
+  loadCSV: function(payload) {
+    if (this.schedule.length === 0) {
+      if (this.debug) console.log("[MyGarbage] Loading CSV file:", this.garbageScheduleCSVFile);
+      fs.readFile(this.garbageScheduleCSVFile, "utf8", (err, rawData) => {
+        if (err) return console.error("[MyGarbage] CSV Read Error:", err);
+
+        // csv-parse v5 callback style
+        parse(rawData, { delimiter: ",", columns: true, ltrim: true }, (err, parsedData) => {
+          if (err) return console.error("[MyGarbage] CSV Parse Error:", err);
+
+          this.schedule = parsedData;
+          this.postProcessCSV();
+          if (this.debug) console.log("[MyGarbage] CSV Loaded. Total entries:", this.schedule.length);
+          this.sendNextPickups(payload);
+        });
+      });
+    } else {
+      this.sendNextPickups(payload);
+    }
+  },
+
+  postProcessCSV: function() {
+    this.schedule.forEach(obj => {
+      if (!obj.pickupDate && obj.WeekStarting) {
+        obj.pickupDate = moment(obj.WeekStarting, ["MM/DD/YY","YYYY-MM-DD"]);
+      }
+      for (let key in obj) {
+        if (key !== "pickupDate" && key !== "WeekStarting") {
           obj[key] = obj[key] !== "0";
+        }
       }
     });
   },
 
-  getNextPickups: function (payload) {
-    var start = moment().startOf("day"); //today, 12:00 AM
-    var end = moment().startOf("day").add(payload.weeksToDisplay * 7, "days");
-    
-    //If nextPickups has only this.config.alert entries left, send alert
-    var remainingPickups = this.schedule.filter(function (obj) {
-      return obj.Calendar == payload.collectionCalendar &&
-        obj.pickupDate.isSameOrAfter(start);
-    });
+  // --- iCal Loader ---
+  loadICal: async function(payload) {
+    try {
+      if (this.debug) console.log("[MyGarbage] Loading iCal URL:", payload.icalUrl);
+      let events;
 
-    if (this.config.alert && remainingPickups.length <= this.config.alert) {
-      this.sendSocketNotification("MMM-MYGARBAGE-NOENTRIES", remainingPickups.length);
+      if (payload.icalUrl.startsWith("http")) {
+        const res = await axios.get(payload.icalUrl);
+        events = ical.parseICS(res.data);
+      } else {
+        events = ical.parseICS(fs.readFileSync(payload.icalUrl, "utf8"));
+      }
+
+      this.schedule = [];
+      const map = payload.icalBinMap || {};
+
+      for (let k in events) {
+        const ev = events[k];
+        if (ev.type === "VEVENT") {
+          const pickupDate = moment(ev.start);
+          const pickup = { pickupDate };
+
+          const eventName = ev.summary.toLowerCase();
+          let mapped = false;
+
+          // Map using user-provided icalBinMap
+          for (const key in map) {
+            if (key.toLowerCase() === eventName) {
+              pickup[map[key]] = true;
+              mapped = true;
+            }
+          }
+
+          // Unknown events automatically go to OtherBin
+          if (!mapped) {
+            pickup["OtherBin"] = true;
+            if (this.debug) console.log(`[MyGarbage] Unknown pickup '${ev.summary}' mapped to OtherBin`);
+          }
+
+          // Merge multiple bins on same day
+          const existing = this.schedule.find(p => p.pickupDate.isSame(pickupDate, "day"));
+          if (existing) Object.assign(existing, pickup);
+          else this.schedule.push(pickup);
+        }
+      }
+
+      if (this.debug) console.log("[MyGarbage] iCal loaded. Total pickups:", this.schedule.length);
+      this.sendNextPickups(payload);
+
+    } catch (e) {
+      console.error("[MyGarbage] iCal Load Error:", e);
     }
-    //find info for next pickup dates
-    var nextPickups = this.schedule.filter(function (obj) {
-      return obj.Calendar == payload.collectionCalendar &&
-        obj.pickupDate.isSameOrAfter(start) &&
-        obj.pickupDate.isBefore(end);
+  },
+
+  // --- Normalize pickup bins ---
+  normalizePickupBins: function(pickup) {
+    const standardBins = ["GreenBin","PaperBin","GarbageBin","PMDBin","OtherBin"];
+    const normalized = { pickupDate: pickup.pickupDate };
+    standardBins.forEach(bin => {
+      if (pickup[bin]) normalized[bin] = true;
     });
+    return normalized;
+  },
 
-    this.sendSocketNotification('MMM-MYGARBAGE-RESPONSE' + payload.instanceId, nextPickups);
+  // --- Send pickups to frontend ---
+  sendNextPickups: function(payload) {
+    const start = moment().startOf("day");
+    const end = moment().startOf("day").add(payload.weeksToDisplay * 7, "days");
 
+    let nextPickups = this.schedule
+      .filter(obj => obj.pickupDate.isSameOrAfter(start) && obj.pickupDate.isBefore(end))
+      .map(p => this.normalizePickupBins(p))
+      .sort((a,b) => a.pickupDate - b.pickupDate);
+
+    if (this.debug) console.log("[MyGarbage] Next pickups to send:", nextPickups);
+
+    if (this.config.alert && nextPickups.length <= this.config.alert) {
+      this.sendSocketNotification("MMM-MYGARBAGE-NOENTRIES", nextPickups.length);
+    }
+
+    this.sendSocketNotification("MMM-MYGARBAGE-RESPONSE" + payload.instanceId, nextPickups);
   }
 
 });

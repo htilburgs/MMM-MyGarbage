@@ -29,3 +29,8 @@
   position: relative;
   margin-left:4px;
 }
+
+.garbage-debug {
+  opacity: 0.7;
+  font-family: monospace;
+}
