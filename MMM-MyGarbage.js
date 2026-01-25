@@ -79,7 +79,6 @@ Module.register('MMM-MyGarbage', {
     }
   },
 
-  // --- SVG Icon Factory ---
   svgIconFactory: function (type) {
     const bin = type.replace(/\s+/g, "").toLowerCase();
 
@@ -91,7 +90,7 @@ Module.register('MMM-MyGarbage', {
 
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     svg.setAttributeNS(null, "class", "garbage-icon");
-    svg.setAttributeNS(null, "style", "fill: " + (colors[bin] || "#787878")); // default gray
+    svg.setAttributeNS(null, "style", "fill: " + (colors[bin] || "#787878"));
 
     const use = document.createElementNS("http://www.w3.org/2000/svg", "use");
     use.setAttributeNS("http://www.w3.org/1999/xlink", "href", this.file("garbage_icons.svg#bin"));
