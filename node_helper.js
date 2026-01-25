@@ -85,10 +85,11 @@ module.exports = NodeHelper.create({
           const eventName = ev.summary.toLowerCase();
           for (const key in map) {
             if (key.toLowerCase() === eventName) {
-              pickup[map[key]] = true;
+              pickup[map[key]] = true; // map to standard bin key
             }
           }
 
+          // merge multiple bins on same day
           const existing = this.schedule.find(p => p.pickupDate.isSame(pickupDate, "day"));
           if (existing) Object.assign(existing, pickup);
           else this.schedule.push(pickup);
