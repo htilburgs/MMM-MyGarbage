@@ -119,7 +119,7 @@ Here is the documentation of options for the modules configuration:
     </tr>
 <tr>
       <td><code>icalBinMap</code></td>
-      <td>Define the names as provided in the iCal Calendar.<br />The names will be matches with the type of Bin.<br />If there is no match, otherBin wil be used.<br/>
+      <td>Define the <strong>EXACT</strong> names as provided in the iCal Calendar.<br />The names will be matches with the type of Bin.<br />If there is no match, otherBin wil be used.<br/>
       </td>
     </tr>
   </tbody>
