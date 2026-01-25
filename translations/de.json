@@ -1,4 +1,7 @@
 {
-    "GARBAGEENTRIESLEFT": "Nur noch {entriesLeft} Einträge im Abfallkalender",
-    "REMEMBERADDINGPICKUPS": "Füge weitere Einträge hinzu, um dieses Modul weiterhin benutzen zu können"
+  "LOADING": "Wird geladen...",
+  "TODAY": "Heute",
+  "TOMORROW": "Morgen",
+  "GARBAGEENTRIESLEFT": "Noch {entriesLeft} Abholungen verfügbar",
+  "REMEMBERADDINGPICKUPS": "Vergessen Sie nicht, neue Abholungen hinzuzufügen"
 }
