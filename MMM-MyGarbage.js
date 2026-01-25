@@ -79,18 +79,19 @@ Module.register('MMM-MyGarbage', {
     }
   },
 
-  svgIconFactory: function (type) {
-    const bin = type.replace(/\s+/g, "").toLowerCase();
-
-    // Normalize configured colors
+  // --- SVG Icon Factory ---
+  svgIconFactory: function (binKey) {
+    // Map binKey to color (case-insensitive)
     const colors = {};
     for (const key in this.config.binColors) {
-      colors[key.toLowerCase().replace(/\s+/g, "")] = this.config.binColors[key];
+      colors[key.toLowerCase()] = this.config.binColors[key];
     }
+
+    const color = colors[binKey.toLowerCase()] || "#787878";
 
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     svg.setAttributeNS(null, "class", "garbage-icon");
-    svg.setAttributeNS(null, "style", "fill: " + (colors[bin] || "#787878"));
+    svg.setAttributeNS(null, "style", "fill:" + color);
 
     const use = document.createElementNS("http://www.w3.org/2000/svg", "use");
     use.setAttributeNS("http://www.w3.org/1999/xlink", "href", this.file("garbage_icons.svg#bin"));
@@ -134,14 +135,15 @@ Module.register('MMM-MyGarbage', {
 
       pickupContainer.appendChild(dateContainer);
 
-      // Icons — only standard bins
+      // Icons — iterate over all keys except pickupDate
       const iconContainer = document.createElement("span");
       iconContainer.classList.add("garbage-icon-container");
 
-      const bins = ["GreenBin", "PaperBin", "GarbageBin", "PMDBin", "OtherBin"];
-      bins.forEach(bin => {
-        if (pickup[bin]) iconContainer.appendChild(this.svgIconFactory(bin));
-      });
+      for (let key in pickup) {
+        if (key !== "pickupDate") {
+          iconContainer.appendChild(this.svgIconFactory(key));
+        }
+      }
 
       pickupContainer.appendChild(iconContainer);
 
