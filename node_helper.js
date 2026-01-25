@@ -3,7 +3,7 @@ const fs = require("fs");
 const moment = require("moment");
 const axios = require("axios");
 const ical = require("node-ical");
-const { parse } = require("csv-parse"); 
+const { parse } = require("csv-parse"); // ✅ CSV v5 compatible
 
 module.exports = NodeHelper.create({
 
@@ -34,7 +34,6 @@ module.exports = NodeHelper.create({
       fs.readFile(this.garbageScheduleCSVFile, "utf8", (err, rawData) => {
         if (err) return console.error("[MyGarbage] CSV Read Error:", err);
 
-        // csv-parse v5 callback style
         parse(rawData, { delimiter: ",", columns: true, ltrim: true }, (err, parsedData) => {
           if (err) return console.error("[MyGarbage] CSV Parse Error:", err);
 
@@ -62,19 +61,23 @@ module.exports = NodeHelper.create({
     });
   },
 
-  // --- iCal Loader ---
+  // --- iCal Loader (robust) ---
   loadICal: async function(payload) {
     try {
       if (this.debug) console.log("[MyGarbage] Loading iCal URL:", payload.icalUrl);
-      let events;
+
+      let rawData;
 
       if (payload.icalUrl.startsWith("http")) {
-        const res = await axios.get(payload.icalUrl);
-        events = ical.parseICS(res.data);
+        // Fetch iCal from URL with redirects
+        const res = await axios.get(payload.icalUrl, { maxRedirects: 5 });
+        rawData = res.data;
       } else {
-        events = ical.parseICS(fs.readFileSync(payload.icalUrl, "utf8"));
+        // Load local file
+        rawData = fs.readFileSync(payload.icalUrl, "utf8");
       }
 
+      const events = ical.parseICS(rawData);
       this.schedule = [];
       const map = payload.icalBinMap || {};
 
@@ -101,7 +104,7 @@ module.exports = NodeHelper.create({
             if (this.debug) console.log(`[MyGarbage] Unknown pickup '${ev.summary}' mapped to OtherBin`);
           }
 
-          // Merge multiple bins on same day
+          // Merge multiple bins on the same day
           const existing = this.schedule.find(p => p.pickupDate.isSame(pickupDate, "day"));
           if (existing) Object.assign(existing, pickup);
           else this.schedule.push(pickup);
@@ -111,8 +114,9 @@ module.exports = NodeHelper.create({
       if (this.debug) console.log("[MyGarbage] iCal loaded. Total pickups:", this.schedule.length);
       this.sendNextPickups(payload);
 
-    } catch (e) {
-      console.error("[MyGarbage] iCal Load Error:", e);
+    } catch (err) {
+      console.error("[MyGarbage] Failed to load iCal:", payload.icalUrl);
+      console.error(err.message || err);
     }
   },
 
