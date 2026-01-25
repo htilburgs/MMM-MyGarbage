@@ -25,6 +25,7 @@ module.exports = NodeHelper.create({
     }
   },
 
+  // --- CSV Loader ---
   loadCSV: function(payload) {
     if (this.schedule.length === 0) {
       fs.readFile(this.garbageScheduleCSVFile, "utf8", (err, rawData) => {
@@ -57,6 +58,7 @@ module.exports = NodeHelper.create({
     });
   },
 
+  // --- iCal Loader ---
   loadICal: async function(payload) {
     try {
       let events;
@@ -96,6 +98,7 @@ module.exports = NodeHelper.create({
     }
   },
 
+  // --- Normalize pickup keys ---
   normalizePickupBins: function(pickup, binMap) {
     const standardBins = ["GreenBin","PaperBin","GarbageBin","PMDBin","OtherBin"];
     const normalized = { pickupDate: pickup.pickupDate };
@@ -107,13 +110,15 @@ module.exports = NodeHelper.create({
     return normalized;
   },
 
+  // --- Send pickups to frontend ---
   sendNextPickups: function(payload) {
     const start = moment().startOf("day");
     const end = moment().startOf("day").add(payload.weeksToDisplay * 7, "days");
 
     let nextPickups = this.schedule
       .filter(obj => obj.pickupDate.isSameOrAfter(start) && obj.pickupDate.isBefore(end))
-      .map(p => this.normalizePickupBins(p, payload.icalBinMap));
+      .map(p => this.normalizePickupBins(p, payload.icalBinMap))
+      .sort((a,b) => a.pickupDate - b.pickupDate); // <-- sort by date ascending
 
     if (this.config.alert && nextPickups.length <= this.config.alert) {
       this.sendSocketNotification("MMM-MYGARBAGE-NOENTRIES", nextPickups.length);
