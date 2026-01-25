@@ -3,7 +3,7 @@ const fs = require("fs");
 const parse = require("csv-parse");
 const moment = require("moment");
 const ical = require("node-ical");
-const axios = require("axios"); // required for HTTP iCal fetching
+const axios = require("axios");
 
 module.exports = NodeHelper.create({
 
@@ -59,7 +59,7 @@ module.exports = NodeHelper.create({
     });
   },
 
-  // --- iCal Loader ---
+  // --- iCal Loader with configurable mapping ---
   loadICal: async function (payload) {
     try {
       let events;
@@ -72,16 +72,21 @@ module.exports = NodeHelper.create({
 
       this.schedule = [];
 
+      // Get iCal-to-bin mapping from config
+      const map = payload.icalBinMap || {};
+
       for (let k in events) {
         const ev = events[k];
         if (ev.type === "VEVENT") {
           const pickupDate = moment(ev.start);
           const pickup = { pickupDate };
 
-          // Map event title to bins (comma-separated) and normalize
-          const bins = ev.summary.split(",").map(b => b.trim().replace(/\s+/g, "").toLowerCase());
+          // Split title by comma in case multiple bins, lowercase + trim
+          const bins = ev.summary.split(",").map(b => b.trim().toLowerCase());
           bins.forEach(bin => {
-            if (bin) pickup[bin] = true;
+            if (bin && map[bin]) {
+              pickup[map[bin]] = true; // use standard bin key
+            }
           });
 
           // Merge bins if same day already exists
