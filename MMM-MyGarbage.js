@@ -6,8 +6,10 @@ Module.register('MMM-MyGarbage', {
     limitTo: 99,
     dateFormat: "dddd D MMMM",
     fade: true,
-    fadePoint: 0.25,        // Start fade at 1/4th of the list
-    collectionCalendar: "default" // Add collectionCalendar config
+    fadePoint: 0.25,
+    collectionCalendar: "default",
+    dataSource: "csv",  // "csv" or "ical"
+    icalUrl: ""          // URL of iCal file if using iCal
   },
 
   getStyles: function () {
@@ -47,11 +49,12 @@ Module.register('MMM-MyGarbage', {
     this.sendSocketNotification("MMM-MYGARBAGE-GET", {
       weeksToDisplay: this.config.weeksToDisplay,
       instanceId: this.identifier,
-      collectionCalendar: this.config.collectionCalendar
+      collectionCalendar: this.config.collectionCalendar,
+      dataSource: this.config.dataSource,
+      icalUrl: this.config.icalUrl
     });
 
-    // Refresh every hour
-    var self = this;
+    const self = this;
     this.timer = setTimeout(() => self.getPickups(), 60 * 60 * 1000);
   },
 
@@ -77,18 +80,18 @@ Module.register('MMM-MyGarbage', {
       PMDBin: "#ffff00",
       OtherBin: "#B87333"
     };
-    var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     svg.setAttributeNS(null, "class", "garbage-icon");
     svg.setAttributeNS(null, "style", "fill: " + (colors[type] || type));
 
-    var use = document.createElementNS("http://www.w3.org/2000/svg", "use");
+    const use = document.createElementNS("http://www.w3.org/2000/svg", "use");
     use.setAttributeNS("http://www.w3.org/1999/xlink", "href", this.file("garbage_icons.svg#bin"));
     svg.appendChild(use);
     return svg;
   },
 
   getDom: function () {
-    var wrapper = document.createElement("div");
+    const wrapper = document.createElement("div");
 
     if (this.nextPickups.length === 0) {
       wrapper.innerHTML = this.translate("LOADING");
@@ -106,41 +109,31 @@ Module.register('MMM-MyGarbage', {
     for (let i = 0; i < this.nextPickups.length && i < this.config.limitTo; i++) {
       const pickup = this.nextPickups[i];
 
-      // Container
-      let pickupContainer = document.createElement("div");
+      const pickupContainer = document.createElement("div");
       pickupContainer.classList.add("garbage-container");
 
-      // Date
-      let dateContainer = document.createElement("span");
+      const dateContainer = document.createElement("span");
       dateContainer.classList.add("garbage-date");
       const today = moment().startOf("day");
       const pickUpDate = moment(pickup.pickupDate);
 
-      if (today.isSame(pickUpDate)) {
-        dateContainer.innerHTML = this.translate("TODAY");
-      } else if (today.clone().add(1, "days").isSame(pickUpDate)) {
-        dateContainer.innerHTML = this.translate("TOMORROW");
-      } else if (today.clone().add(7, "days").isAfter(pickUpDate)) {
-        dateContainer.innerHTML = this.capFirst(pickUpDate.format("dddd"));
-      } else {
-        dateContainer.innerHTML = this.capFirst(pickUpDate.format(this.config.dateFormat));
-      }
+      if (today.isSame(pickUpDate)) dateContainer.innerHTML = this.translate("TODAY");
+      else if (today.clone().add(1, "days").isSame(pickUpDate)) dateContainer.innerHTML = this.translate("TOMORROW");
+      else if (today.clone().add(7, "days").isAfter(pickUpDate)) dateContainer.innerHTML = this.capFirst(pickUpDate.format("dddd"));
+      else dateContainer.innerHTML = this.capFirst(pickUpDate.format(this.config.dateFormat));
+
       pickupContainer.appendChild(dateContainer);
 
-      // Icons
-      let iconContainer = document.createElement("span");
+      const iconContainer = document.createElement("span");
       iconContainer.classList.add("garbage-icon-container");
-      for (let key in pickup) {
-        if (key !== "pickupDate" && key !== "WeekStarting" && pickup[key]) {
-          iconContainer.appendChild(this.svgIconFactory(key));
-        }
+      for (const key in pickup) {
+        if (key !== "pickupDate" && pickup[key]) iconContainer.appendChild(this.svgIconFactory(key));
       }
+
       pickupContainer.appendChild(iconContainer);
 
-      // Fading
       if (i >= startFade && fadeSteps > 0) {
-        const fade = 1 - ((i - startFade) / fadeSteps);
-        pickupContainer.style.opacity = fade;
+        pickupContainer.style.opacity = 1 - ((i - startFade) / fadeSteps);
       }
 
       wrapper.appendChild(pickupContainer);
