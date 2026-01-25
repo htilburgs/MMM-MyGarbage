@@ -83,10 +83,20 @@ module.exports = NodeHelper.create({
           const pickup = { pickupDate };
 
           const eventName = ev.summary.toLowerCase();
+          let mapped = false;
+
+          // Map using user-provided icalBinMap
           for (const key in map) {
             if (key.toLowerCase() === eventName) {
-              pickup[map[key]] = true; // map to standard bin key
+              pickup[map[key]] = true;
+              mapped = true;
             }
+          }
+
+          // If no mapping found, automatically assign to OtherBin
+          if (!mapped) {
+            pickup["OtherBin"] = true;
+            if (this.debug) console.log(`[MyGarbage] Unknown pickup '${ev.summary}' mapped to OtherBin`);
           }
 
           // merge multiple bins on same day
