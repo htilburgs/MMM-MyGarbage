@@ -39,7 +39,7 @@ Add the module to your modules array in your config.js.
                 alert: true,
                 fade:true,
                 fadePoint: 0.25,
-                dataSource: "ical",                         // csv (schedule_garbage.csv | ical (put URL in icalUrl)
+                dataSource: "csv",                         // csv (schedule_garbage.csv | ical (put URL in icalUrl)
                 icalUrl: "PLACE_HERE_PUBLIC_ICAL_URL",      // only used if dataSource is "ical"
                 debug: false,                               // Only set on true for debugging 
                 binColors: {                                // Define custom Bin Colors
