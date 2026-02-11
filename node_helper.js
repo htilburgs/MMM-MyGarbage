@@ -81,28 +81,57 @@ module.exports = NodeHelper.create({
       this.schedule = [];
       const map = payload.icalBinMap || {};
 
+      // Expand recurring events (RRULE) into concrete pickup dates within the display window.
+      // Without this, a biweekly rule like Waste only yields the very first DTSTART instance.
+      const windowStart = moment().startOf("day");
+      const windowEnd = moment().startOf("day").add((payload.weeksToDisplay || 2) * 7, "days");
+
+      const applyBinMapping = (ev, pickup) => {
+        const eventName = (ev.summary || "").toLowerCase();
+        let mapped = false;
+
+        // Map using user-provided icalBinMap
+        for (const key in map) {
+          if (key.toLowerCase() === eventName) {
+            pickup[map[key]] = true;
+            mapped = true;
+          }
+        }
+
+        // Unknown events automatically go to OtherBin
+        if (!mapped) {
+          pickup["OtherBin"] = true;
+          if (this.debug) console.log(`[MyGarbage] Unknown pickup '${ev.summary}' mapped to OtherBin`);
+        }
+      };
+
       for (let k in events) {
         const ev = events[k];
-        if (ev.type === "VEVENT") {
-          const pickupDate = moment(ev.start);
+        if (ev.type !== "VEVENT") continue;
+
+        // Determine all occurrences in the window.
+        // node-ical exposes `ev.rrule` (from rrule package) for recurring events.
+        let occurrences = [];
+
+        if (ev.rrule) {
+          // Include occurrences that fall within the window.
+          occurrences = ev.rrule.between(windowStart.toDate(), windowEnd.toDate(), true);
+
+          // Respect EXDATE exclusions when present.
+          if (ev.exdate) {
+            const ex = Object.values(ev.exdate).map(d => moment(d).format("YYYY-MM-DD"));
+            occurrences = occurrences.filter(d => !ex.includes(moment(d).format("YYYY-MM-DD")));
+          }
+        } else if (ev.start) {
+          occurrences = [ev.start];
+        }
+
+        // Create / merge pickups for each occurrence.
+        for (const occ of occurrences) {
+          const pickupDate = moment(occ);
           const pickup = { pickupDate };
 
-          const eventName = ev.summary.toLowerCase();
-          let mapped = false;
-
-          // Map using user-provided icalBinMap
-          for (const key in map) {
-            if (key.toLowerCase() === eventName) {
-              pickup[map[key]] = true;
-              mapped = true;
-            }
-          }
-
-          // Unknown events automatically go to OtherBin
-          if (!mapped) {
-            pickup["OtherBin"] = true;
-            if (this.debug) console.log(`[MyGarbage] Unknown pickup '${ev.summary}' mapped to OtherBin`);
-          }
+          applyBinMapping(ev, pickup);
 
           // Merge multiple bins on the same day
           const existing = this.schedule.find(p => p.pickupDate.isSame(pickupDate, "day"));
@@ -123,10 +152,17 @@ module.exports = NodeHelper.create({
   // --- Normalize pickup bins ---
   normalizePickupBins: function(pickup) {
     const standardBins = ["GreenBin","PaperBin","GarbageBin","PMDBin","OtherBin"];
-    const normalized = { pickupDate: pickup.pickupDate };
+    const normalized = {
+      // Serialize to ISO string so the frontend can reliably parse and sort.
+      pickupDate: moment.isMoment(pickup.pickupDate)
+        ? pickup.pickupDate.toISOString()
+        : moment(pickup.pickupDate).toISOString()
+    };
+
     standardBins.forEach(bin => {
       if (pickup[bin]) normalized[bin] = true;
     });
+
     return normalized;
   },
 
@@ -138,7 +174,7 @@ module.exports = NodeHelper.create({
     let nextPickups = this.schedule
       .filter(obj => obj.pickupDate.isSameOrAfter(start) && obj.pickupDate.isBefore(end))
       .map(p => this.normalizePickupBins(p))
-      .sort((a,b) => a.pickupDate - b.pickupDate);
+      .sort((a, b) => new Date(a.pickupDate).getTime() - new Date(b.pickupDate).getTime());
 
     if (this.debug) console.log("[MyGarbage] Next pickups to send:", nextPickups);
 
