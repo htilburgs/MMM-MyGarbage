@@ -56,9 +56,27 @@ Module.register('MMM-MyGarbage', {
   },
 
   socketNotificationReceived: function(notification, payload) {
-    if (notification === "MMM-MYGARBAGE-RESPONSE"+this.identifier && payload.length>0) {
-      // sort pickups by date
-      this.nextPickups = payload.sort((a,b) => a.pickupDate - b.pickupDate);
+    if (notification === "MMM-MYGARBAGE-RESPONSE"+this.identifier && Array.isArray(payload) && payload.length > 0) {
+      // Sort pickups by date.
+      // NOTE: payload comes over the socket as JSON, so any Date objects become strings.
+      // Subtracting strings yields NaN, which breaks sorting and can cause dates to appear to “vanish”
+      // when other logic expects the array to be ordered.
+      this.nextPickups = payload
+        .slice()
+        .sort((a, b) => {
+          const ta = new Date(a.pickupDate).getTime();
+          const tb = new Date(b.pickupDate).getTime();
+          // If parsing fails, keep original relative order.
+          if (!Number.isFinite(ta) || !Number.isFinite(tb)) return 0;
+          return ta - tb;
+        });
+
+      if (this.config.debug) {
+        Log.info(`[MMM-MyGarbage] (${this.identifier}) Received ${payload.length} pickup entries`);
+        Log.info(`[MMM-MyGarbage] (${this.identifier}) First 5 pickupDate values: ` +
+          this.nextPickups.slice(0, 5).map(p => p.pickupDate).join(", "));
+      }
+
       this.updateDom(1000);
     } else if (notification === "MMM-MYGARBAGE-NOENTRIES") {
       this.sendNotification("SHOW_ALERT", {
@@ -142,7 +160,8 @@ Module.register('MMM-MyGarbage', {
 
       let debugText = "DEBUG: Next Pickups Loaded:\n";
       this.nextPickups.forEach(pickup => {
-        const dateStr = moment(pickup.pickupDate).format("YYYY-MM-DD");
+        const m = moment(pickup.pickupDate);
+        const dateStr = m.isValid() ? m.format("YYYY-MM-DD") : String(pickup.pickupDate);
         const activeBins = bins.filter(bin => pickup[bin]).join(", ");
         debugText += `${dateStr} -> ${activeBins}\n`;
       });
