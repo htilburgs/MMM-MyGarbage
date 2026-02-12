@@ -183,5 +183,6 @@ Now it has become a general script, to use in all areas all over the world.
 1.0.0        : Initial version </br>
 1.0.1        : Minor changes </br>
 2.0.0        : Changed for use with CSV or with iCal Calendar
+2.0.1        : Update for Streamline date parsing and allow for recurring events in ical (thx to @thepagan)
 
 
