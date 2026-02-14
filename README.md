@@ -134,7 +134,7 @@ An example file `garbage_schedule.csv` is added.
 Create a CSV based on the following template:
 
 ```
-WeekStarting,Greenbin,GarbageBin,PaperBin,PMDBin,OtherBin
+WeekStarting,GreenBin,GarbageBin,PaperBin,PMDBin,OtherBin
 03/07/18,1,0,1,0,0
 03/14/18,1,1,1,0,0
 03/21/18,1,0,1,0,1
