@@ -37,6 +37,7 @@ Add the module to your modules array in your config.js.
                 limitTo: 99,
                 dateFormat: "dddd LL",
                 alert: true,
+                alertThreshold: 5, // give alert when there are 5 entries or less in CSV 
                 fade:true,
                 fadePoint: 0.25,
                 dataSource: "csv",                         // csv (schedule_garbage.csv | ical (put URL in icalUrl)
