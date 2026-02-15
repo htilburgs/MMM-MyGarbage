@@ -1,16 +1,17 @@
-Module.register('MMM-MyGarbage', {
+Module.register("MMM-MyGarbage", {
 
   defaults: {
-    alert: false,
+    alert: true,                // Enable CSV alerts
+    alertThreshold: 5,          // Trigger alert if remaining pickups <= threshold
     weeksToDisplay: 2,
     limitTo: 99,
     dateFormat: "dddd D MMMM",
     fade: true,
     fadePoint: 0.25,
     collectionCalendar: "default",
-    dataSource: "csv",
+    dataSource: "csv",          // CSV or iCal
     icalUrl: "",
-    debug: false,  // <-- enable debug overlay
+    debug: true,                // Enable debug logs
     binColors: {
       GreenBin: "#00A651",
       PaperBin: "#0059ff",
@@ -23,7 +24,13 @@ Module.register('MMM-MyGarbage', {
   getStyles: function() { return ["MMM-MyGarbage.css"]; },
   getScripts: function() { return ["moment.js"]; },
   getTranslations: function() {
-    return { en: "translations/en.json", nl: "translations/nl.json" };
+    return { 
+      en: "translations/en.json", 
+      nl: "translations/nl.json", 
+      de: "translations/de.json", 
+      fr: "translations/fr.json",
+      sv: "translations/sv.json"
+    };
   },
 
   capFirst: function(string) {
@@ -31,10 +38,10 @@ Module.register('MMM-MyGarbage', {
   },
 
   start: function() {
-    Log.info('Starting module: ' + this.name);
+    Log.info("Starting module: " + this.name);
     this.nextPickups = [];
     this.timer = null;
-    this.sendSocketNotification('MMM-MYGARBAGE-CONFIG', this.config);
+    this.sendSocketNotification("MMM-MYGARBAGE-CONFIG", this.config);
     this.getPickups();
   },
 
@@ -52,39 +59,52 @@ Module.register('MMM-MyGarbage', {
     });
 
     const self = this;
-    this.timer = setTimeout(() => self.getPickups(), 60*60*1000);
+    this.timer = setTimeout(() => self.getPickups(), 60 * 60 * 1000);
   },
 
   socketNotificationReceived: function(notification, payload) {
-    if (notification === "MMM-MYGARBAGE-RESPONSE"+this.identifier && Array.isArray(payload) && payload.length > 0) {
-      // Sort pickups by date.
-      // NOTE: payload comes over the socket as JSON, so any Date objects become strings.
-      // Subtracting strings yields NaN, which breaks sorting and can cause dates to appear to “vanish”
-      // when other logic expects the array to be ordered.
+    // --- Pickups response ---
+    if (
+      notification === "MMM-MYGARBAGE-RESPONSE" + this.identifier &&
+      Array.isArray(payload) &&
+      payload.length > 0
+    ) {
+      // Sort by date
       this.nextPickups = payload
         .slice()
-        .sort((a, b) => {
-          const ta = new Date(a.pickupDate).getTime();
-          const tb = new Date(b.pickupDate).getTime();
-          // If parsing fails, keep original relative order.
-          if (!Number.isFinite(ta) || !Number.isFinite(tb)) return 0;
-          return ta - tb;
-        });
+        .sort((a, b) => new Date(a.pickupDate) - new Date(b.pickupDate));
 
       if (this.config.debug) {
         Log.info(`[MMM-MyGarbage] (${this.identifier}) Received ${payload.length} pickup entries`);
-        Log.info(`[MMM-MyGarbage] (${this.identifier}) First 5 pickupDate values: ` +
-          this.nextPickups.slice(0, 5).map(p => p.pickupDate).join(", "));
+        Log.info(`[MMM-MyGarbage] First 5 dates: ${this.nextPickups.slice(0,5).map(p=>p.pickupDate).join(", ")}`);
       }
 
       this.updateDom(1000);
-    } else if (notification === "MMM-MYGARBAGE-NOENTRIES") {
+
+    // --- CSV alert ---
+    } else if (
+      notification === "MMM-MYGARBAGE-NOENTRIES" &&
+      typeof payload === "number"
+    ) {
+      const entriesLeft = payload;
+
+      // Get template from translations
+      let msgTemplate = this.translate("GARBAGE_ALERT_MESSAGE");
+      if (!msgTemplate) msgTemplate = "Warning: Only {{entriesLeft}} garbage pickup entries left in CSV!";
+
+      // Manual replacement of variable
+      const msg = msgTemplate.replace("{{entriesLeft}}", entriesLeft);
+
       this.sendNotification("SHOW_ALERT", {
-        title: this.translate("GARBAGEENTRIESLEFT",{entriesLeft:payload}),
-        message: this.translate("REMEMBERADDINGPICKUPS"),
+        title: this.translate("GARBAGE_ALERT_TITLE") || "Garbage Alert",
+        message: msg,
         imageFA: "recycle",
-        timer: 3000
+        timer: 5000
       });
+
+      if (this.config.debug) {
+        Log.info(`[MMM-MyGarbage] ALERT: ${entriesLeft} pickups remaining`);
+      }
     }
   },
 
@@ -93,17 +113,18 @@ Module.register('MMM-MyGarbage', {
     for (const key in this.config.binColors) colors[key.toLowerCase()] = this.config.binColors[key];
     const color = colors[binKey.toLowerCase()] || "#787878";
 
-    const svg = document.createElementNS("http://www.w3.org/2000/svg","svg");
-    svg.setAttributeNS(null,"class","garbage-icon");
-    svg.setAttributeNS(null,"style","fill:"+color);
-    const use = document.createElementNS("http://www.w3.org/2000/svg","use");
-    use.setAttributeNS("http://www.w3.org/1999/xlink","href",this.file("garbage_icons.svg#bin"));
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttributeNS(null, "class", "garbage-icon");
+    svg.setAttributeNS(null, "style", "fill:" + color);
+    const use = document.createElementNS("http://www.w3.org/2000/svg", "use");
+    use.setAttributeNS("http://www.w3.org/1999/xlink", "href", this.file("garbage_icons.svg#bin"));
     svg.appendChild(use);
     return svg;
   },
 
   getDom: function() {
     const wrapper = document.createElement("div");
+
     if (this.nextPickups.length === 0) {
       wrapper.innerHTML = this.translate("LOADING");
       wrapper.className = "dimmed light small";
@@ -112,14 +133,14 @@ Module.register('MMM-MyGarbage', {
 
     let startFade = 0;
     let fadeSteps = 0;
-    if(this.config.fade && this.config.fadePoint>0 && this.config.fadePoint<1){
-      startFade = Math.min(this.nextPickups.length,this.config.limitTo)*this.config.fadePoint;
-      fadeSteps = Math.min(this.nextPickups.length,this.config.limitTo)-startFade;
+    if (this.config.fade && this.config.fadePoint > 0 && this.config.fadePoint < 1) {
+      startFade = Math.min(this.nextPickups.length, this.config.limitTo) * this.config.fadePoint;
+      fadeSteps = Math.min(this.nextPickups.length, this.config.limitTo) - startFade;
     }
 
-    const bins = ["GreenBin","PaperBin","GarbageBin","PMDBin","OtherBin"];
+    const bins = ["GreenBin", "PaperBin", "GarbageBin", "PMDBin", "OtherBin"];
 
-    for(let i=0;i<this.nextPickups.length && i<this.config.limitTo;i++){
+    for (let i = 0; i < this.nextPickups.length && i < this.config.limitTo; i++) {
       const pickup = this.nextPickups[i];
       const pickupContainer = document.createElement("div");
       pickupContainer.classList.add("garbage-container");
@@ -129,27 +150,29 @@ Module.register('MMM-MyGarbage', {
       dateContainer.classList.add("garbage-date");
       const today = moment().startOf("day");
       const pickUpDate = moment(pickup.pickupDate);
-      if(today.isSame(pickUpDate)) dateContainer.innerHTML = this.translate("TODAY");
-      else if(today.clone().add(1,"days").isSame(pickUpDate)) dateContainer.innerHTML = this.translate("TOMORROW");
-      else if(today.clone().add(7,"days").isAfter(pickUpDate)) dateContainer.innerHTML = this.capFirst(pickUpDate.format("dddd"));
+
+      if (today.isSame(pickUpDate)) dateContainer.innerHTML = this.translate("TODAY");
+      else if (today.clone().add(1, "days").isSame(pickUpDate)) dateContainer.innerHTML = this.translate("TOMORROW");
+      else if (today.clone().add(7, "days").isAfter(pickUpDate)) dateContainer.innerHTML = this.capFirst(pickUpDate.format("dddd"));
       else dateContainer.innerHTML = this.capFirst(pickUpDate.format(this.config.dateFormat));
+
       pickupContainer.appendChild(dateContainer);
 
-      // Icons
+      // Bin icons
       const iconContainer = document.createElement("span");
       iconContainer.classList.add("garbage-icon-container");
-      bins.forEach(bin => { if(pickup[bin]) iconContainer.appendChild(this.svgIconFactory(bin)); });
+      bins.forEach(bin => { if (pickup[bin]) iconContainer.appendChild(this.svgIconFactory(bin)); });
       pickupContainer.appendChild(iconContainer);
 
       // Fade
-      if(i>=startFade && fadeSteps>0){
-        pickupContainer.style.opacity = 1 - ((i-startFade)/fadeSteps);
+      if (i >= startFade && fadeSteps > 0) {
+        pickupContainer.style.opacity = 1 - ((i - startFade) / fadeSteps);
       }
 
       wrapper.appendChild(pickupContainer);
     }
 
-    // --- Debug overlay ---
+    // Debug overlay
     if (this.config.debug) {
       const debugDiv = document.createElement("div");
       debugDiv.classList.add("garbage-debug");

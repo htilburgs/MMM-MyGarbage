@@ -3,5 +3,7 @@
     "TODAY": "Idag",
     "TOMORROW": "Imorgon",
     "GARBAGEENTRIESLEFT": "Det finns bara {entriesLeft} datum kvar i sopkalendern",
-    "REMEMBERADDINGPICKUPS": "Kom ihåg att lägg till nya datum"
+    "REMEMBERADDINGPICKUPS": "Kom ihåg att lägg till nya datum",
+    "GARBAGE_ALERT_TITLE": "Sopor-varning",
+    "GARBAGE_ALERT_MESSAGE": "Varning: Endast {{entriesLeft}} sophämtningar kvar i CSV-filen!"
 }

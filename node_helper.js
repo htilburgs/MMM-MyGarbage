@@ -11,6 +11,25 @@ module.exports = NodeHelper.create({
     console.log("Starting node_helper for module: " + this.name);
     this.schedule = [];
     this.garbageScheduleCSVFile = this.path + "/garbage_schedule.csv";
+
+    // Track last alert date for once-per-day alerts
+    this.lastAlertDate = null;
+
+    // Set up daily reset at midnight
+    const now = moment();
+    const tomorrow = moment().add(1, "days").startOf("day");
+    const msUntilMidnight = tomorrow.diff(now);
+
+    setTimeout(() => {
+      this.lastAlertDate = null;
+      if (this.debug) console.log("[MyGarbage] Alert reset for new day");
+
+      // Repeat daily
+      setInterval(() => {
+        this.lastAlertDate = null;
+        if (this.debug) console.log("[MyGarbage] Alert reset for new day");
+      }, 24 * 60 * 60 * 1000);
+    }, msUntilMidnight);
   },
 
   socketNotificationReceived: async function(notification, payload) {
@@ -69,11 +88,9 @@ module.exports = NodeHelper.create({
       let rawData;
 
       if (payload.icalUrl.startsWith("http")) {
-        // Fetch iCal from URL with redirects
         const res = await axios.get(payload.icalUrl, { maxRedirects: 5 });
         rawData = res.data;
       } else {
-        // Load local file
         rawData = fs.readFileSync(payload.icalUrl, "utf8");
       }
 
@@ -81,8 +98,6 @@ module.exports = NodeHelper.create({
       this.schedule = [];
       const map = payload.icalBinMap || {};
 
-      // Expand recurring events (RRULE) into concrete pickup dates within the display window.
-      // Without this, a biweekly rule like Waste only yields the very first DTSTART instance.
       const windowStart = moment().startOf("day");
       const windowEnd = moment().startOf("day").add((payload.weeksToDisplay || 2) * 7, "days");
 
@@ -90,7 +105,6 @@ module.exports = NodeHelper.create({
         const eventName = (ev.summary || "").toLowerCase();
         let mapped = false;
 
-        // Map using user-provided icalBinMap
         for (const key in map) {
           if (key.toLowerCase() === eventName) {
             pickup[map[key]] = true;
@@ -98,7 +112,6 @@ module.exports = NodeHelper.create({
           }
         }
 
-        // Unknown events automatically go to OtherBin
         if (!mapped) {
           pickup["OtherBin"] = true;
           if (this.debug) console.log(`[MyGarbage] Unknown pickup '${ev.summary}' mapped to OtherBin`);
@@ -109,15 +122,11 @@ module.exports = NodeHelper.create({
         const ev = events[k];
         if (ev.type !== "VEVENT") continue;
 
-        // Determine all occurrences in the window.
-        // node-ical exposes `ev.rrule` (from rrule package) for recurring events.
         let occurrences = [];
 
         if (ev.rrule) {
-          // Include occurrences that fall within the window.
           occurrences = ev.rrule.between(windowStart.toDate(), windowEnd.toDate(), true);
 
-          // Respect EXDATE exclusions when present.
           if (ev.exdate) {
             const ex = Object.values(ev.exdate).map(d => moment(d).format("YYYY-MM-DD"));
             occurrences = occurrences.filter(d => !ex.includes(moment(d).format("YYYY-MM-DD")));
@@ -126,14 +135,11 @@ module.exports = NodeHelper.create({
           occurrences = [ev.start];
         }
 
-        // Create / merge pickups for each occurrence.
         for (const occ of occurrences) {
           const pickupDate = moment(occ);
           const pickup = { pickupDate };
-
           applyBinMapping(ev, pickup);
 
-          // Merge multiple bins on the same day
           const existing = this.schedule.find(p => p.pickupDate.isSame(pickupDate, "day"));
           if (existing) Object.assign(existing, pickup);
           else this.schedule.push(pickup);
@@ -153,7 +159,6 @@ module.exports = NodeHelper.create({
   normalizePickupBins: function(pickup) {
     const standardBins = ["GreenBin","PaperBin","GarbageBin","PMDBin","OtherBin"];
     const normalized = {
-      // Serialize to ISO string so the frontend can reliably parse and sort.
       pickupDate: moment.isMoment(pickup.pickupDate)
         ? pickup.pickupDate.toISOString()
         : moment(pickup.pickupDate).toISOString()
@@ -178,8 +183,31 @@ module.exports = NodeHelper.create({
 
     if (this.debug) console.log("[MyGarbage] Next pickups to send:", nextPickups);
 
-    if (this.config.alert && nextPickups.length <= this.config.alert) {
-      this.sendSocketNotification("MMM-MYGARBAGE-NOENTRIES", nextPickups.length);
+    // --- CSV-only alert, once per day ---
+    if (
+      payload.dataSource === "csv" &&
+      this.config.alert === true &&
+      typeof this.config.alertThreshold === "number" &&
+      nextPickups.length <= this.config.alertThreshold
+    ) {
+      const todayStr = moment().format("YYYY-MM-DD");
+
+      if (this.lastAlertDate !== todayStr) {
+        if (this.debug) {
+          console.log(
+            `[MyGarbage] Low CSV entries: ${nextPickups.length} remaining (threshold: ${this.config.alertThreshold})`
+          );
+        }
+
+        this.sendSocketNotification(
+          "MMM-MYGARBAGE-NOENTRIES",
+          nextPickups.length
+        );
+
+        this.lastAlertDate = todayStr;
+      } else if (this.debug) {
+        console.log("[MyGarbage] Alert already sent today, skipping.");
+      }
     }
 
     this.sendSocketNotification("MMM-MYGARBAGE-RESPONSE" + payload.instanceId, nextPickups);
