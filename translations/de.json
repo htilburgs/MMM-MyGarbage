@@ -3,5 +3,7 @@
   "TODAY": "Heute",
   "TOMORROW": "Morgen",
   "GARBAGEENTRIESLEFT": "Noch {entriesLeft} Abholungen verfügbar",
-  "REMEMBERADDINGPICKUPS": "Vergessen Sie nicht, neue Abholungen hinzuzufügen"
+  "REMEMBERADDINGPICKUPS": "Vergessen Sie nicht, neue Abholungen hinzuzufügen",
+   "GARBAGE_ALERT_TITLE": "Abfall-Alarm",
+  "GARBAGE_ALERT_MESSAGE": "Warnung: Nur noch {{entriesLeft}} Müllabholungen in der CSV-Datei übrig!"
 }
