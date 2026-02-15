@@ -9,9 +9,9 @@ Module.register("MMM-MyGarbage", {
     fade: true,
     fadePoint: 0.25,
     collectionCalendar: "default",
-    dataSource: "csv",          // CSV or ical
+    dataSource: "csv",          // CSV or iCal
     icalUrl: "",
-    debug: true,                // Enable debug logging
+    debug: true,                // Enable debug logs
     binColors: {
       GreenBin: "#00A651",
       PaperBin: "#0059ff",
@@ -24,7 +24,13 @@ Module.register("MMM-MyGarbage", {
   getStyles: function() { return ["MMM-MyGarbage.css"]; },
   getScripts: function() { return ["moment.js"]; },
   getTranslations: function() {
-    return { en: "translations/en.json", nl: "translations/nl.json" };
+    return { 
+      en: "translations/en.json", 
+      nl: "translations/nl.json", 
+      de: "translations/de.json", 
+      fr: "translations/fr.json",
+      sv: "translations/sv.json"
+    };
   },
 
   capFirst: function(string) {
@@ -63,6 +69,7 @@ Module.register("MMM-MyGarbage", {
       Array.isArray(payload) &&
       payload.length > 0
     ) {
+      // Sort by date
       this.nextPickups = payload
         .slice()
         .sort((a, b) => new Date(a.pickupDate) - new Date(b.pickupDate));
@@ -80,28 +87,24 @@ Module.register("MMM-MyGarbage", {
       typeof payload === "number"
     ) {
       const entriesLeft = payload;
+
+      // Get template from translations
+      let msgTemplate = this.translate("GARBAGE_ALERT_MESSAGE");
+      if (!msgTemplate) msgTemplate = "Warning: Only {{entriesLeft}} garbage pickup entries left in CSV!";
+
+      // Manual replacement of variable
+      const msg = msgTemplate.replace("{{entriesLeft}}", entriesLeft);
+
       this.sendNotification("SHOW_ALERT", {
         title: this.translate("GARBAGE_ALERT_TITLE") || "Garbage Alert",
-
-    let msgTemplate = this.translate("GARBAGE_ALERT_MESSAGE");
-    if (!msgTemplate) {
-    msgTemplate = "Warning: Only {{entriesLeft}} garbage pickup entries left in CSV!";
-    }
-
-    // Replace {{entriesLeft}} manually
-    const msg = msgTemplate.replace("{{entriesLeft}}", entriesLeft);
-
-    this.sendNotification("SHOW_ALERT", {
-      title: this.translate("GARBAGE_ALERT_TITLE") || "Garbage Alert",
-      message: msg,
-      imageFA: "recycle",
-      timer: 5000
-    });
+        message: msg,
+        imageFA: "recycle",
+        timer: 5000
+      });
 
       if (this.config.debug) {
         Log.info(`[MMM-MyGarbage] ALERT: ${entriesLeft} pickups remaining`);
       }
-
     }
   },
 
@@ -121,6 +124,7 @@ Module.register("MMM-MyGarbage", {
 
   getDom: function() {
     const wrapper = document.createElement("div");
+
     if (this.nextPickups.length === 0) {
       wrapper.innerHTML = this.translate("LOADING");
       wrapper.className = "dimmed light small";
@@ -146,13 +150,15 @@ Module.register("MMM-MyGarbage", {
       dateContainer.classList.add("garbage-date");
       const today = moment().startOf("day");
       const pickUpDate = moment(pickup.pickupDate);
+
       if (today.isSame(pickUpDate)) dateContainer.innerHTML = this.translate("TODAY");
       else if (today.clone().add(1, "days").isSame(pickUpDate)) dateContainer.innerHTML = this.translate("TOMORROW");
       else if (today.clone().add(7, "days").isAfter(pickUpDate)) dateContainer.innerHTML = this.capFirst(pickUpDate.format("dddd"));
       else dateContainer.innerHTML = this.capFirst(pickUpDate.format(this.config.dateFormat));
+
       pickupContainer.appendChild(dateContainer);
 
-      // Icons
+      // Bin icons
       const iconContainer = document.createElement("span");
       iconContainer.classList.add("garbage-icon-container");
       bins.forEach(bin => { if (pickup[bin]) iconContainer.appendChild(this.svgIconFactory(bin)); });
