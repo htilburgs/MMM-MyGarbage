@@ -11,7 +11,7 @@ Module.register("MMM-MyGarbage", {
     collectionCalendar: "default",
     dataSource: "csv",          // CSV or iCal
     icalUrl: "",
-    debug: true,                // Enable debug logs
+    debug: false,                // Enable debug logs
     binColors: {
       GreenBin: "#00A651",
       PaperBin: "#0059ff",
