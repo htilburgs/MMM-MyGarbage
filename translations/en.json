@@ -3,5 +3,7 @@
   "TODAY": "Today",
   "TOMORROW": "Tomorrow",
   "GARBAGEENTRIESLEFT": "{entriesLeft} garbage pickups remaining",
-  "REMEMBERADDINGPICKUPS": "Remember to add new pickups"
+  "REMEMBERADDINGPICKUPS": "Remember to add new pickups",
+  "GARBAGE_ALERT_TITLE": "Garbage Alert",
+  "GARBAGE_ALERT_MESSAGE": "Warning: Only {{entriesLeft}} garbage pickup entries left in CSV!"
 }
