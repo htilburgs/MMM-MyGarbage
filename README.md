@@ -37,7 +37,7 @@ Add the module to your modules array in your config.js.
                 limitTo: 99,
                 dateFormat: "dddd LL",
                 alert: true,
-                alertThreshold: 5, // give alert when there are 5 entries or less in CSV 
+                alertThreshold: 5, 
                 fade:true,
                 fadePoint: 0.25,
                 dataSource: "csv",                         // csv (schedule_garbage.csv | ical (put URL in icalUrl)
@@ -86,7 +86,11 @@ Here is the documentation of options for the modules configuration:
     </tr>
     <tr>
       <td><code>alert</code></td>
-      <td>(optional) Show alert, if remaining entries in csv file fall under this threshold<br /><br /><strong>Number</strong><br />Default: <code>false</code></td>
+      <td>(optional) Show alert, if remaining entries in csv file fall under threshold<br /><br /><strong>Default:</strong><code>false</code><br /><strong>Possible values: </strong><code>true</code> or <code>false</code><br /></td>
+    </tr>
+    <tr>
+      <td><code>alertThreshold</code></td>
+      <td>(optional) Threshold entries left in CSV file<br /><br /><strong>Number</strong><br />Default: <code>5</code> <br /></td>
     </tr>
     <tr>
       <td><code>fade</code></td>
@@ -184,6 +188,5 @@ Now it has become a general script, to use in all areas all over the world.
 1.0.0        : Initial version </br>
 1.0.1        : Minor changes </br>
 2.0.0        : Changed for use with CSV or with iCal Calendar </br>
-2.0.1        : Update for Streamline date parsing and allow for recurring events in ical (thx to @thepagan)
-
-
+2.0.1        : Update for Streamline date parsing and allow for recurring events in ical (thx to @thepagan) </br>
+2.1.0        : Update for CSV file and ```alertThreshold``` (add to your config.js!)
