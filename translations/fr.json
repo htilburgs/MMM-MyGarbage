@@ -3,5 +3,7 @@
   "TODAY": "Aujourd'hui",
   "TOMORROW": "Demain",
   "GARBAGEENTRIESLEFT": "{entriesLeft} collectes restantes",
-  "REMEMBERADDINGPICKUPS": "N'oubliez pas d'ajouter de nouvelles collectes"
+  "REMEMBERADDINGPICKUPS": "N'oubliez pas d'ajouter de nouvelles collectes",
+  "GARBAGE_ALERT_TITLE": "Alerte Déchets",
+  "GARBAGE_ALERT_MESSAGE": "Attention : Il ne reste que {{entriesLeft}} collectes de déchets dans le fichier CSV !"
 }
