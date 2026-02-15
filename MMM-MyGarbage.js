@@ -82,11 +82,21 @@ Module.register("MMM-MyGarbage", {
       const entriesLeft = payload;
       this.sendNotification("SHOW_ALERT", {
         title: this.translate("GARBAGE_ALERT_TITLE") || "Garbage Alert",
-        message: this.translate("GARBAGE_ALERT_MESSAGE", { entriesLeft }) ||
-                 `Warning: Only ${entriesLeft} garbage pickup entries left in CSV!`,
-        imageFA: "recycle",
-        timer: 5000
-      });
+
+    let msgTemplate = this.translate("GARBAGE_ALERT_MESSAGE");
+    if (!msgTemplate) {
+    msgTemplate = "Warning: Only {{entriesLeft}} garbage pickup entries left in CSV!";
+    }
+
+    // Replace {{entriesLeft}} manually
+    const msg = msgTemplate.replace("{{entriesLeft}}", entriesLeft);
+
+    this.sendNotification("SHOW_ALERT", {
+      title: this.translate("GARBAGE_ALERT_TITLE") || "Garbage Alert",
+      message: msg,
+      imageFA: "recycle",
+      timer: 5000
+    });
 
       if (this.config.debug) {
         Log.info(`[MMM-MyGarbage] ALERT: ${entriesLeft} pickups remaining`);
