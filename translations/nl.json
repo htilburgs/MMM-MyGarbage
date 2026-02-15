@@ -4,4 +4,6 @@
   "TOMORROW": "Morgen",
   "GARBAGEENTRIESLEFT": "Nog {entriesLeft} ophaalmomenten beschikbaar",
   "REMEMBERADDINGPICKUPS": "Vergeet niet nieuwe ophaalmomenten toe te voegen"
+  "GARBAGE_ALERT_TITLE": "Afval Alert",
+  "GARBAGE_ALERT_MESSAGE": "Let op: Slechts {{entriesLeft}} afvalophalingen over in CSV!"
 }
