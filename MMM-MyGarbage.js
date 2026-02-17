@@ -83,7 +83,7 @@ Module.register("MMM-MyGarbage", {
 
     // --- CSV alert ---
     } else if (
-      notification === "MMM-MYGARBAGE-NOENTRIES" &&
+      notification === "MMM-MYGARBAGE-NOENTRIES" + this.identifier &&
       typeof payload === "number"
     ) {
       const entriesLeft = payload;
