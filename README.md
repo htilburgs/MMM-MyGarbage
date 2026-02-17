@@ -189,4 +189,5 @@ Now it has become a general script, to use in all areas all over the world.
 1.0.1        : Minor changes </br>
 2.0.0        : Changed for use with CSV or with iCal Calendar </br>
 2.0.1        : Update for Streamline date parsing and allow for recurring events in ical (thx to @thepagan) </br>
-2.1.0        : Update for CSV file and ```alertThreshold``` (add to your config.js!)
+2.1.0        : Update for CSV file and ```alertThreshold``` (add to your config.js!) </br>
+2.1.1        : bugfix for the ```alertThreshold```
