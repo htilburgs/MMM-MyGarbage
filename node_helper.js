@@ -11,11 +11,9 @@ module.exports = NodeHelper.create({
     console.log("Starting node_helper for module: " + this.name);
     this.schedule = [];
     this.garbageScheduleCSVFile = this.path + "/garbage_schedule.csv";
-
-    // Track last alert date for once-per-day alerts
     this.lastAlertDate = null;
 
-    // Set up daily reset at midnight
+    // Reset alert daily at midnight
     const now = moment();
     const tomorrow = moment().add(1, "days").startOf("day");
     const msUntilMidnight = tomorrow.diff(now);
@@ -24,11 +22,11 @@ module.exports = NodeHelper.create({
       this.lastAlertDate = null;
       if (this.debug) console.log("[MyGarbage] Alert reset for new day");
 
-      // Repeat daily
       setInterval(() => {
         this.lastAlertDate = null;
         if (this.debug) console.log("[MyGarbage] Alert reset for new day");
       }, 24 * 60 * 60 * 1000);
+
     }, msUntilMidnight);
   },
 
@@ -71,7 +69,10 @@ module.exports = NodeHelper.create({
     this.schedule.forEach(obj => {
       if (!obj.pickupDate && obj.WeekStarting) {
         obj.pickupDate = moment(obj.WeekStarting, ["MM/DD/YY","YYYY-MM-DD"]);
+      } else {
+        obj.pickupDate = moment(obj.pickupDate);
       }
+
       for (let key in obj) {
         if (key !== "pickupDate" && key !== "WeekStarting") {
           obj[key] = obj[key] !== "0";
@@ -104,18 +105,13 @@ module.exports = NodeHelper.create({
       const applyBinMapping = (ev, pickup) => {
         const eventName = (ev.summary || "").toLowerCase();
         let mapped = false;
-
         for (const key in map) {
           if (key.toLowerCase() === eventName) {
             pickup[map[key]] = true;
             mapped = true;
           }
         }
-
-        if (!mapped) {
-          pickup["OtherBin"] = true;
-          if (this.debug) console.log(`[MyGarbage] Unknown pickup '${ev.summary}' mapped to OtherBin`);
-        }
+        if (!mapped) pickup["OtherBin"] = true;
       };
 
       for (let k in events) {
@@ -126,7 +122,6 @@ module.exports = NodeHelper.create({
 
         if (ev.rrule) {
           occurrences = ev.rrule.between(windowStart.toDate(), windowEnd.toDate(), true);
-
           if (ev.exdate) {
             const ex = Object.values(ev.exdate).map(d => moment(d).format("YYYY-MM-DD"));
             occurrences = occurrences.filter(d => !ex.includes(moment(d).format("YYYY-MM-DD")));
@@ -155,7 +150,7 @@ module.exports = NodeHelper.create({
     }
   },
 
-  // --- Normalize pickup bins ---
+  // --- Normalize bins ---
   normalizePickupBins: function(pickup) {
     const standardBins = ["GreenBin","PaperBin","GarbageBin","PMDBin","OtherBin"];
     const normalized = {
@@ -163,11 +158,9 @@ module.exports = NodeHelper.create({
         ? pickup.pickupDate.toISOString()
         : moment(pickup.pickupDate).toISOString()
     };
-
     standardBins.forEach(bin => {
       if (pickup[bin]) normalized[bin] = true;
     });
-
     return normalized;
   },
 
@@ -176,37 +169,40 @@ module.exports = NodeHelper.create({
     const start = moment().startOf("day");
     const end = moment().startOf("day").add(payload.weeksToDisplay * 7, "days");
 
-    let nextPickups = this.schedule
+    const nextPickups = this.schedule
       .filter(obj => obj.pickupDate.isSameOrAfter(start) && obj.pickupDate.isBefore(end))
       .map(p => this.normalizePickupBins(p))
-      .sort((a, b) => new Date(a.pickupDate).getTime() - new Date(b.pickupDate).getTime());
+      .sort((a, b) => new Date(a.pickupDate) - new Date(b.pickupDate));
 
     if (this.debug) console.log("[MyGarbage] Next pickups to send:", nextPickups);
 
-    // --- CSV-only alert, once per day ---
+    // --- CSV alert based on future pickups ---
     if (
       payload.dataSource === "csv" &&
       this.config.alert === true &&
-      typeof this.config.alertThreshold === "number" &&
-      nextPickups.length <= this.config.alertThreshold
+      typeof this.config.alertThreshold === "number"
     ) {
       const todayStr = moment().format("YYYY-MM-DD");
 
-      if (this.lastAlertDate !== todayStr) {
-        if (this.debug) {
-          console.log(
-            `[MyGarbage] Low CSV entries: ${nextPickups.length} remaining (threshold: ${this.config.alertThreshold})`
+      const futurePickups = this.schedule.filter(p => p.pickupDate.isSameOrAfter(moment().startOf("day")));
+
+      if (futurePickups.length <= this.config.alertThreshold) {
+        if (this.lastAlertDate !== todayStr) {
+          if (this.debug) {
+            console.log(
+              `[MyGarbage] Low CSV entries: ${futurePickups.length} remaining (threshold: ${this.config.alertThreshold})`
+            );
+          }
+
+          this.sendSocketNotification(
+            "MMM-MYGARBAGE-NOENTRIES" + payload.instanceId,
+            futurePickups.length
           );
+
+          this.lastAlertDate = todayStr;
+        } else if (this.debug) {
+          console.log("[MyGarbage] Alert already sent today, skipping.");
         }
-
-        this.sendSocketNotification(
-          "MMM-MYGARBAGE-NOENTRIES",
-          nextPickups.length
-        );
-
-        this.lastAlertDate = todayStr;
-      } else if (this.debug) {
-        console.log("[MyGarbage] Alert already sent today, skipping.");
       }
     }
 
