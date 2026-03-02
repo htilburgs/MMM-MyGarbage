@@ -4,6 +4,8 @@ const moment = require("moment");
 const axios = require("axios");
 const ical = require("node-ical");
 const { parse } = require("csv-parse");
+const http = require("http");
+const https = require("https");
 
 module.exports = NodeHelper.create({
 
@@ -65,9 +67,7 @@ module.exports = NodeHelper.create({
           this.schedule = parsedData;
           this.postProcessCSV();
 
-          if (this.debug) {
-            console.log("[MyGarbage] CSV Loaded. Total entries:", this.schedule.length);
-          }
+          if (this.debug) console.log("[MyGarbage] CSV Loaded. Total entries:", this.schedule.length);
 
           this.sendNextPickups(payload);
         });
@@ -94,25 +94,25 @@ module.exports = NodeHelper.create({
     });
   },
 
-  // --- iCal Loader ---
+  // --- iCal Loader with IPv4 Agent ---
   loadICal: async function (payload) {
     try {
-      if (this.debug) {
-        console.log("[MyGarbage] Loading iCal from:", payload.icalUrl);
-      }
+      if (this.debug) console.log("[MyGarbage] Loading iCal from:", payload.icalUrl);
 
-      let rawData;
+      const agent = payload.icalUrl.startsWith("https")
+        ? new https.Agent({ family: 4 })
+        : new http.Agent({ family: 4 });
 
-      if (payload.icalUrl.startsWith("http")) {
-        const res = await axios.get(payload.icalUrl, { maxRedirects: 5 });
-        rawData = res.data;
-        console.log("[MyGarbage] iCal URL loaded successfully:", payload.icalUrl);
-      } else {
-        rawData = fs.readFileSync(payload.icalUrl, "utf8");
-        console.log("[MyGarbage] iCal file loaded successfully:", payload.icalUrl);
-      }
+      const res = await axios.get(payload.icalUrl, {
+        maxRedirects: 5,
+        timeout: 15000,
+        httpAgent: agent,
+        httpsAgent: agent
+      });
 
-      const events = ical.parseICS(rawData);
+      console.log("[MyGarbage] iCal loaded successfully from:", payload.icalUrl);
+
+      const events = ical.parseICS(res.data);
       this.schedule = [];
       const map = payload.icalBinMap || {};
 
@@ -122,14 +122,12 @@ module.exports = NodeHelper.create({
       const applyBinMapping = (ev, pickup) => {
         const eventName = (ev.summary || "").toLowerCase();
         let mapped = false;
-
         for (const key in map) {
           if (key.toLowerCase() === eventName) {
             pickup[map[key]] = true;
             mapped = true;
           }
         }
-
         if (!mapped) pickup["OtherBin"] = true;
       };
 
@@ -138,15 +136,12 @@ module.exports = NodeHelper.create({
         if (ev.type !== "VEVENT") continue;
 
         let occurrences = [];
-
         if (ev.rrule) {
           occurrences = ev.rrule.between(windowStart.toDate(), windowEnd.toDate(), true);
-
           if (ev.exdate) {
             const ex = Object.values(ev.exdate).map(d => moment(d).format("YYYY-MM-DD"));
             occurrences = occurrences.filter(d => !ex.includes(moment(d).format("YYYY-MM-DD")));
           }
-
         } else if (ev.start) {
           occurrences = [ev.start];
         }
@@ -154,7 +149,6 @@ module.exports = NodeHelper.create({
         for (const occ of occurrences) {
           const pickupDate = moment(occ);
           const pickup = { pickupDate };
-
           applyBinMapping(ev, pickup);
 
           const existing = this.schedule.find(p => p.pickupDate.isSame(pickupDate, "day"));
@@ -163,40 +157,35 @@ module.exports = NodeHelper.create({
         }
       }
 
-      if (this.debug) {
-        console.log("[MyGarbage] iCal processed. Total pickups:", this.schedule.length);
-      }
+      if (this.debug) console.log("[MyGarbage] iCal processed. Total pickups:", this.schedule.length);
 
       this.sendNextPickups(payload);
 
     } catch (err) {
       console.error("[MyGarbage] ERROR loading iCal from:", payload.icalUrl);
-      console.error("[MyGarbage] Reason:", err.message || err);
 
-      if (this.debug && err.stack) {
-        console.error(err.stack);
+      if (err.response) console.error("[MyGarbage] HTTP Status:", err.response.status);
+      if (err.code) console.error("[MyGarbage] Error code:", err.code);
+      if (err.errors && Array.isArray(err.errors)) {
+        err.errors.forEach((e, i) => {
+          console.error(`[MyGarbage] Inner error ${i + 1}:`, e.message);
+        });
       }
+
+      console.error("[MyGarbage] Full error:", err.message);
+      if (this.debug && err.stack) console.error(err.stack);
     }
   },
 
-  // --- Normalize bins ---
   normalizePickupBins: function (pickup) {
     const standardBins = ["GreenBin", "PaperBin", "GarbageBin", "PMDBin", "OtherBin"];
-
     const normalized = {
-      pickupDate: moment.isMoment(pickup.pickupDate)
-        ? pickup.pickupDate.toISOString()
-        : moment(pickup.pickupDate).toISOString()
+      pickupDate: moment.isMoment(pickup.pickupDate) ? pickup.pickupDate.toISOString() : moment(pickup.pickupDate).toISOString()
     };
-
-    standardBins.forEach(bin => {
-      if (pickup[bin]) normalized[bin] = true;
-    });
-
+    standardBins.forEach(bin => { if (pickup[bin]) normalized[bin] = true; });
     return normalized;
   },
 
-  // --- Send pickups to frontend ---
   sendNextPickups: function (payload) {
     const start = moment().startOf("day");
     const end = moment().startOf("day").add(payload.weeksToDisplay * 7, "days");
@@ -208,43 +197,20 @@ module.exports = NodeHelper.create({
 
     if (this.debug) console.log("[MyGarbage] Next pickups to send:", nextPickups);
 
-    // --- CSV alert based on future pickups ---
-    if (
-      payload.dataSource === "csv" &&
-      this.config.alert === true &&
-      typeof this.config.alertThreshold === "number"
-    ) {
+    if (payload.dataSource === "csv" && this.config.alert === true && typeof this.config.alertThreshold === "number") {
       const todayStr = moment().format("YYYY-MM-DD");
-
-      const futurePickups = this.schedule.filter(p =>
-        p.pickupDate.isSameOrAfter(moment().startOf("day"))
-      );
+      const futurePickups = this.schedule.filter(p => p.pickupDate.isSameOrAfter(moment().startOf("day")));
 
       if (futurePickups.length <= this.config.alertThreshold) {
         if (this.lastAlertDate !== todayStr) {
-          if (this.debug) {
-            console.log(
-              `[MyGarbage] Low CSV entries: ${futurePickups.length} remaining (threshold: ${this.config.alertThreshold})`
-            );
-          }
-
-          this.sendSocketNotification(
-            "MMM-MYGARBAGE-NOENTRIES" + payload.instanceId,
-            futurePickups.length
-          );
-
+          if (this.debug) console.log(`[MyGarbage] Low CSV entries: ${futurePickups.length} remaining (threshold: ${this.config.alertThreshold})`);
+          this.sendSocketNotification("MMM-MYGARBAGE-NOENTRIES" + payload.instanceId, futurePickups.length);
           this.lastAlertDate = todayStr;
-
-        } else if (this.debug) {
-          console.log("[MyGarbage] Alert already sent today, skipping.");
-        }
+        } else if (this.debug) console.log("[MyGarbage] Alert already sent today, skipping.");
       }
     }
 
-    this.sendSocketNotification(
-      "MMM-MYGARBAGE-RESPONSE" + payload.instanceId,
-      nextPickups
-    );
+    this.sendSocketNotification("MMM-MYGARBAGE-RESPONSE" + payload.instanceId, nextPickups);
   }
 
 });
