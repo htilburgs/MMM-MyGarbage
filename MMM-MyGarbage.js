@@ -1,16 +1,16 @@
 Module.register("MMM-MyGarbage", {
 
   defaults: {
-    alert: true,                // Enable CSV alerts
-    alertThreshold: 5,          // Trigger alert if remaining pickups <= threshold
+    alert: true,
+    alertThreshold: 5,
     weeksToDisplay: 2,
     limitTo: 99,
     dateFormat: "dddd D MMMM",
     fade: true,
     fadePoint: 0.25,
-    dataSource: "csv",          // CSV or iCal
+    dataSource: "csv",
     icalUrl: "",
-    debug: false,               // Enable debug logs
+    debug: false,
     binColors: {
       GreenBin: "#00A651",
       PaperBin: "#0059ff",
@@ -64,7 +64,8 @@ Module.register("MMM-MyGarbage", {
 
       if (this.config.debug) {
         Log.info(`[MMM-MyGarbage] (${this.identifier}) Received ${payload.length} pickup entries`);
-        Log.info(`[MMM-MyGarbage] First 5 dates: ${this.nextPickups.slice(0,5).map(p => p.pickupDate).join(", ")}`);
+        const sorted = this.nextPickups.slice().sort((a, b) => new Date(a.pickupDate) - new Date(b.pickupDate));
+        Log.info(`[MMM-MyGarbage] First 5 dates: ${sorted.slice(0,5).map(p => p.pickupDate).join(", ")}`);
       }
 
       this.updateDom(1000);
@@ -88,17 +89,13 @@ Module.register("MMM-MyGarbage", {
   },
 
   svgIconFactory(bin) {
-    // Use user-defined color if available, otherwise default to bright pink
-    const color = (this.config.binColors && this.config.binColors[bin]) || "#ED2DB0";
-    
+    const color = (this.config.binColors && this.config.binColors[bin]) || "#ED2DB0"; // Pink default
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     svg.setAttribute("class", "garbage-icon");
     svg.style.fill = color;
-    
     const use = document.createElementNS("http://www.w3.org/2000/svg", "use");
     use.setAttributeNS("http://www.w3.org/1999/xlink", "href", this.file("garbage_icons.svg#bin"));
     svg.appendChild(use);
-    
     return svg;
   },
 
@@ -148,7 +145,7 @@ Module.register("MMM-MyGarbage", {
       wrapper.appendChild(container);
     }
 
-    // --- Debug overlay ---
+    // --- Debug overlay (sorted) ---
     if (this.config.debug) {
       const debugDiv = document.createElement("div");
       debugDiv.classList.add("garbage-debug");
@@ -157,12 +154,13 @@ Module.register("MMM-MyGarbage", {
       debugDiv.style.color = "red";
       debugDiv.style.whiteSpace = "pre-line";
 
+      const sortedPickups = this.nextPickups.slice().sort((a, b) => new Date(a.pickupDate) - new Date(b.pickupDate));
       let debugText = "DEBUG: Next Pickups Loaded:\n";
-      this.nextPickups.forEach(pickup => {
-        const dateStr = moment(pickup.pickupDate).isValid()
-          ? moment(pickup.pickupDate).format("YYYY-MM-DD")
-          : String(pickup.pickupDate);
-        debugText += `${dateStr} -> ${pickup.bins.join(", ")}\n`;
+      sortedPickups.forEach(p => {
+        const dateStr = moment(p.pickupDate).isValid()
+          ? moment(p.pickupDate).format("YYYY-MM-DD")
+          : String(p.pickupDate);
+        debugText += `${dateStr} -> ${p.bins.join(", ")}\n`;
       });
 
       debugDiv.innerText = debugText;
