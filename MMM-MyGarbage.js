@@ -1,27 +1,33 @@
 Module.register("MMM-MyGarbage", {
 
   defaults: {
-    alert: true,
-    alertThreshold: 5,
+    alert: true,                // Enable CSV alerts
+    alertThreshold: 5,          // Trigger alert if remaining pickups <= threshold
     weeksToDisplay: 2,
     limitTo: 99,
     dateFormat: "dddd D MMMM",
     fade: true,
     fadePoint: 0.25,
-    dataSource: "csv",
+    dataSource: "csv",          // CSV or iCal
     icalUrl: "",
-    debug: false,
-    binColors: {}
+    debug: false,               // Enable debug logs
+    binColors: {
+      GreenBin: "#00A651",
+      PaperBin: "#0059ff",
+      GarbageBin: "#787878",
+      PMDBin: "#ffff00",
+      OtherBin: "#B87333"
+    }
   },
 
   getStyles() { return ["MMM-MyGarbage.css"]; },
   getScripts() { return ["moment.js"]; },
 
   getTranslations() {
-    return {
-      en: "translations/en.json",
-      nl: "translations/nl.json",
-      de: "translations/de.json",
+    return { 
+      en: "translations/en.json", 
+      nl: "translations/nl.json", 
+      de: "translations/de.json", 
       fr: "translations/fr.json",
       sv: "translations/sv.json"
     };
@@ -82,13 +88,17 @@ Module.register("MMM-MyGarbage", {
   },
 
   svgIconFactory(bin) {
-    const color = (this.config.binColors && this.config.binColors[bin]) || "#787878";
+    // Use user-defined color if available, otherwise default to bright pink
+    const color = (this.config.binColors && this.config.binColors[bin]) || "#ED2DB0";
+    
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     svg.setAttribute("class", "garbage-icon");
     svg.style.fill = color;
+    
     const use = document.createElementNS("http://www.w3.org/2000/svg", "use");
     use.setAttributeNS("http://www.w3.org/1999/xlink", "href", this.file("garbage_icons.svg#bin"));
     svg.appendChild(use);
+    
     return svg;
   },
 
@@ -138,7 +148,7 @@ Module.register("MMM-MyGarbage", {
       wrapper.appendChild(container);
     }
 
-    // --- Debug overlay (separate, does not affect fade) ---
+    // --- Debug overlay ---
     if (this.config.debug) {
       const debugDiv = document.createElement("div");
       debugDiv.classList.add("garbage-debug");
