@@ -8,7 +8,6 @@ Module.register("MMM-MyGarbage", {
     dateFormat: "dddd D MMMM",
     fade: true,
     fadePoint: 0.25,
-    collectionCalendar: "default",
     dataSource: "csv",
     icalUrl: "",
     debug: false,
