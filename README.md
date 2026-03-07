@@ -65,7 +65,7 @@ Here is the documentation of options for the modules configuration:
 |`alertThreshold`        | (optional) Threshold entries left in CSV file<br/><br/><b>Number</b><br/>Default: `5`
 |`fade`                | Fade the future events to black. (Gradient).<br/><br/><b>Default: </b>`true`<br/><<b>Possible values: </b>`true` or `false`
 |`fadePoint`                | Where to start fade <br/><br/><b>Default: </b>`0.25`<br/><b>Posibble values: </b>Between `0` (top of the list) and `1` (bottom of list)
-|`dataSource`        | Select the datasource you're using<br/><br/><b>Default: </b>`csv`<br/><br/><b>Possible values: </b>`csv` or `ical`
+|`dataSource`        | Select the datasource you're using<br/><br/><b>Default: </b>`csv`<br/><b>Possible values: </b>`csv` or `ical`
 |`icalUrl`        | Fill in your (public) ical URL<br/>Only use in combination with dataSource: `ical` 
 |`debug`        | For debugging the module when failure or testing<br/><br/><b>Default: </b>`false`<br/><b>Possible values: </b>`false` or `true`
 |`binColors`        | Define your own Bin Colors - Bin names have to match you're names from CSV.<br/>When using `ical` match also `icalBinMap`
