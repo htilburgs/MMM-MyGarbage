@@ -1,6 +1,9 @@
 Module.register("MMM-MyGarbage", {
 
   defaults: {
+    alert: true,
+    alertThreshold: 5,
+
     weeksToDisplay: 2,
     limitTo: 99,
     dateFormat: "dddd D MMMM",
@@ -65,17 +68,45 @@ Module.register("MMM-MyGarbage", {
 
   socketNotificationReceived(notification, payload) {
 
-    if (notification === "MMM-MYGARBAGE-RESPONSE" + this.identifier) {
+    if (
+      notification === "MMM-MYGARBAGE-RESPONSE" + this.identifier &&
+      Array.isArray(payload)
+    ) {
 
       this.nextPickups = payload
         .slice()
         .sort((a, b) => new Date(a.pickupDate) - new Date(b.pickupDate));
 
+      this.updateDom(1000);
+
       if (this.config.debug) {
         Log.info("[MyGarbage] Pickups received:", this.nextPickups);
       }
+    }
 
-      this.updateDom(1000);
+    else if (
+      notification === "MMM-MYGARBAGE-NOENTRIES" + this.identifier &&
+      typeof payload === "number"
+    ) {
+
+      let msgTemplate = this.translate("GARBAGE_ALERT_MESSAGE");
+
+      if (!msgTemplate) {
+        msgTemplate = "Warning: Only {{entriesLeft}} garbage pickup entries left in CSV!";
+      }
+
+      const msg = msgTemplate.replace("{{entriesLeft}}", payload);
+
+      this.sendNotification("SHOW_ALERT", {
+        title: this.translate("GARBAGE_ALERT_TITLE") || "Garbage Alert",
+        message: msg,
+        imageFA: "recycle",
+        timer: 5000
+      });
+
+      if (this.config.debug) {
+        Log.info("[MyGarbage] ALERT triggered:", payload);
+      }
     }
   },
 
@@ -112,8 +143,10 @@ Module.register("MMM-MyGarbage", {
     const wrapper = document.createElement("div");
 
     if (this.nextPickups.length === 0) {
+
       wrapper.innerHTML = this.translate("LOADING");
       wrapper.className = "dimmed light small";
+
       return wrapper;
     }
 
