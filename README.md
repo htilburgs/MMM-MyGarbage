@@ -71,7 +71,7 @@ Here is the documentation of options for the modules configuration:
 |`binColors`        | Define your own Bin Colors - Bin names have to match you're names from CSV.<br/>When using `ical` match also `icalBinMap`
 
 ## Creating and using your Garbage Schedule for use with dataSource CSV
-You can use this module by creating your own Garbage Schedule file with the name `garbage_schedule.csv` 
+You can use this module by creating your own Garbage Schedule file with the name `garbage_schedule.csv` <br/>
 An example file `garbage_schedule.csv` is added.
 
 Create a CSV based on the following template:
@@ -84,26 +84,29 @@ WeekStarting,GreenBin,GarbageBin,PaperBin,PMDBin,OtherBin
 03/28/18,1,1,1,1,0
 ```
 
-Default there are 3 bins defined (green, gray and blue) If you need more garbage bins, simply add an extra column in the `garbage_schedule.csv` file. The name is the color you like the bin to have. 
+Default there are 5 bins defined. If you need more garbage bins, simply add an extra column in the `garbage_schedule.csv` file, with the name of the extra bin. If you only need 3, then simply remove them. When the module is started, it reads the names and will try them to match to the `binColors`.
+As of v3.0.0 of the module you can add custom names in the CSV of rename current names. As long as you change your `binColors` in `config.js` with the correspending names, you will see the information with the correct collors. 
+
+<b>Remark</b>
+Any Bin name that is not or not correct matched with the name in binColors, will be shown in the color $\color{#F542CE}{\textsf{PURPLE}}$ 
 
 Add lines for each garbage pickup date as needed.
 The date format needs to be specified as `MM/DD/YY` (e.g.: 05/28/18 for 28-May-2018)
-
 Colors can be defined in the config.js file:
 * Legacy Values:
   * GreenBin (defaults to #00A651)
   * GarbageBin (defaults to #787878)
   * PaperBin (defaults to #0059ff)
   * PMDBin (defaults to #ffff00)
-  * OtherBin (defaults to #B87333)
+  * OtherBin (defaults to #F542CE)
 * Any CSS color string (red, chocolate, cornflowerblue, etc..)
 * Any HEX-Color (#FF0000, #8c8c8c, etc)
 * Any rgb, rgba or hsl value **if in double quotes** ("rgb(128,65,98)", "rgba(134,56,32,0.5)", "hsl(0, 100%, 50%)", etc.)
 
 The following is **VERY** important:
-* The CSV file must be delimited using commas
-* The date format needs to be specified as `MM/DD/YY` (e.g.: 05/28/18 for 28-May-2018)
-* The remaining fields of each line specify whether the particular waste product is scheduled to be picked up on the given date. A value of `0` means no pick up. A value of ANYTHING ELSE means the product will be picked up.  Using the first pick up date entry in the template above, `1,0,1` means that `green` and `blue` will be picked up on that date, while `gray` will not be picked up.
+* The CSV file **must** be delimited using commas
+* The date format **must** to be specified as `MM/DD/YY` (e.g.: 05/28/18 for 28-May-2018)
+* The remaining fields of each line specify whether the particular waste product is scheduled to be picked up on the given date. A value of `0` means no pick up. A value of ANYTHING ELSE means the product will be picked up.  Using the first pick up date entry in the template above, `1,0,1,0,0` means that `green` and `blue` will be picked up on that date, while the others will not be picked up.
 
 Save the file as `garbage_schedule.csv` in the `MMM-MyGarbage` directory and restart Magic Mirror²
 
