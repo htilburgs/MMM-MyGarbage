@@ -50,29 +50,26 @@ Module.register("MMM-MyGarbage", {
       weeksToDisplay: this.config.weeksToDisplay,
       instanceId: this.identifier,
       dataSource: this.config.dataSource,
-      icalUrl: this.config.icalUrl,
-      icalBinMap: this.config.icalBinMap
+      icalUrl: this.config.icalUrl
     });
 
     this.timer = setTimeout(() => this.getPickups(), 60 * 60 * 1000);
   },
 
   socketNotificationReceived(notification, payload) {
-
     if (notification === "MMM-MYGARBAGE-RESPONSE" + this.identifier && Array.isArray(payload)) {
-      this.nextPickups = payload.slice().sort((a, b) => new Date(a.pickupDate) - new Date(b.pickupDate));
+      this.nextPickups = payload.slice().sort((a,b)=>new Date(a.pickupDate)-new Date(b.pickupDate));
 
       if (this.config.debug) {
-        Log.info(`[MMM-MyGarbage] (${this.identifier}) Received ${payload.length} pickup entries`);
-        const sorted = this.nextPickups.slice().sort((a, b) => new Date(a.pickupDate) - new Date(b.pickupDate));
-        Log.info(`[MMM-MyGarbage] First 5 dates: ${sorted.slice(0,5).map(p => p.pickupDate).join(", ")}`);
+        const sorted = this.nextPickups.slice().sort((a,b)=>new Date(a.pickupDate)-new Date(b.pickupDate));
+        Log.info(`[MMM-MyGarbage] First 5 dates: ${sorted.slice(0,5).map(p=>p.pickupDate).join(", ")}`);
       }
 
       this.updateDom(1000);
 
     } else if (notification === "MMM-MYGARBAGE-NOENTRIES" + this.identifier && typeof payload === "number") {
       const entriesLeft = payload;
-      let msgTemplate = this.translate("GARBAGE_ALERT_MESSAGE") || "Warning: Only {{entriesLeft}} garbage pickup entries left in CSV!";
+      const msgTemplate = this.translate("GARBAGE_ALERT_MESSAGE") || "Warning: Only {{entriesLeft}} garbage pickup entries left in CSV!";
       const msg = msgTemplate.replace("{{entriesLeft}}", entriesLeft);
 
       this.sendNotification("SHOW_ALERT", {
@@ -89,7 +86,7 @@ Module.register("MMM-MyGarbage", {
   },
 
   svgIconFactory(bin) {
-    const color = (this.config.binColors && this.config.binColors[bin]) || "#ED2DB0"; // Pink default
+    const color = (this.config.binColors && this.config.binColors[bin]) || "#ED2DB0";
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     svg.setAttribute("class", "garbage-icon");
     svg.style.fill = color;
@@ -113,39 +110,35 @@ Module.register("MMM-MyGarbage", {
       : 0;
     const fadeSteps = this.config.fade ? Math.min(this.nextPickups.length, this.config.limitTo) - startFade : 0;
 
-    for (let i = 0; i < this.nextPickups.length && i < this.config.limitTo; i++) {
+    for (let i=0; i<this.nextPickups.length && i<this.config.limitTo; i++) {
       const pickup = this.nextPickups[i];
       const container = document.createElement("div");
       container.classList.add("garbage-container");
 
-      // --- Date ---
       const dateContainer = document.createElement("span");
       dateContainer.classList.add("garbage-date");
       const today = moment().startOf("day");
       const pickupDate = moment(pickup.pickupDate);
 
       if (today.isSame(pickupDate)) dateContainer.innerHTML = this.translate("TODAY");
-      else if (today.clone().add(1, "days").isSame(pickupDate)) dateContainer.innerHTML = this.translate("TOMORROW");
-      else if (today.clone().add(7, "days").isAfter(pickupDate)) dateContainer.innerHTML = this.capFirst(pickupDate.format("dddd"));
+      else if (today.clone().add(1,"days").isSame(pickupDate)) dateContainer.innerHTML = this.translate("TOMORROW");
+      else if (today.clone().add(7,"days").isAfter(pickupDate)) dateContainer.innerHTML = this.capFirst(pickupDate.format("dddd"));
       else dateContainer.innerHTML = this.capFirst(pickupDate.format(this.config.dateFormat));
 
       container.appendChild(dateContainer);
 
-      // --- Bin icons ---
       const iconContainer = document.createElement("span");
       iconContainer.classList.add("garbage-icon-container");
       pickup.bins.forEach(bin => iconContainer.appendChild(this.svgIconFactory(bin)));
       container.appendChild(iconContainer);
 
-      // --- Fade ---
-      if (this.config.fade && i >= startFade && fadeSteps > 0) {
-        container.style.opacity = 1 - ((i - startFade) / fadeSteps);
+      if (this.config.fade && i >= startFade && fadeSteps>0) {
+        container.style.opacity = 1 - ((i-startFade)/fadeSteps);
       }
 
       wrapper.appendChild(container);
     }
 
-    // --- Debug overlay (sorted) ---
     if (this.config.debug) {
       const debugDiv = document.createElement("div");
       debugDiv.classList.add("garbage-debug");
@@ -154,12 +147,10 @@ Module.register("MMM-MyGarbage", {
       debugDiv.style.color = "red";
       debugDiv.style.whiteSpace = "pre-line";
 
-      const sortedPickups = this.nextPickups.slice().sort((a, b) => new Date(a.pickupDate) - new Date(b.pickupDate));
+      const sortedPickups = this.nextPickups.slice().sort((a,b)=>new Date(a.pickupDate)-new Date(b.pickupDate));
       let debugText = "DEBUG: Next Pickups Loaded:\n";
       sortedPickups.forEach(p => {
-        const dateStr = moment(p.pickupDate).isValid()
-          ? moment(p.pickupDate).format("YYYY-MM-DD")
-          : String(p.pickupDate);
+        const dateStr = moment(p.pickupDate).isValid() ? moment(p.pickupDate).format("YYYY-MM-DD") : String(p.pickupDate);
         debugText += `${dateStr} -> ${p.bins.join(", ")}\n`;
       });
 
