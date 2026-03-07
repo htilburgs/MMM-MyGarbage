@@ -13,6 +13,21 @@ module.exports = NodeHelper.create({
 
     this.schedule = [];
     this.garbageScheduleCSVFile = this.path + "/garbage_schedule.csv";
+    this.lastAlertDate = null;
+
+    const now = moment();
+    const tomorrow = moment().add(1, "days").startOf("day");
+    const msUntilMidnight = tomorrow.diff(now);
+
+    setTimeout(() => {
+
+      this.lastAlertDate = null;
+
+      setInterval(() => {
+        this.lastAlertDate = null;
+      }, 24 * 60 * 60 * 1000);
+
+    }, msUntilMidnight);
   },
 
   socketNotificationReceived: async function(notification, payload) {
@@ -97,10 +112,6 @@ module.exports = NodeHelper.create({
 
     try {
 
-      if (this.debug) {
-        console.log("[MyGarbage] Loading iCal:", payload.icalUrl);
-      }
-
       const res = await axios.get(payload.icalUrl);
 
       const events = ical.parseICS(res.data);
@@ -142,21 +153,14 @@ module.exports = NodeHelper.create({
             }
           });
 
-          if (!bin) {
-            bin = "OtherBin";
-          }
+          if (!bin) bin = "OtherBin";
 
           let existing = this.schedule.find(p =>
             p.pickupDate.isSame(pickupDate, "day")
           );
 
           if (!existing) {
-
-            existing = {
-              pickupDate,
-              bins: []
-            };
-
+            existing = { pickupDate, bins: [] };
             this.schedule.push(existing);
           }
 
@@ -166,9 +170,7 @@ module.exports = NodeHelper.create({
 
       this.sendNextPickups(payload);
 
-    }
-    catch (err) {
-
+    } catch (err) {
       console.error("[MyGarbage] iCal error:", err.message);
     }
   },
@@ -184,9 +186,33 @@ module.exports = NodeHelper.create({
         pickupDate: p.pickupDate.toISOString(),
         bins: p.bins
       }))
-      .sort((a, b) =>
-        new Date(a.pickupDate) - new Date(b.pickupDate)
+      .sort((a, b) => new Date(a.pickupDate) - new Date(b.pickupDate));
+
+    if (
+      payload.dataSource === "csv" &&
+      this.config.alert === true &&
+      typeof this.config.alertThreshold === "number"
+    ) {
+
+      const todayStr = moment().format("YYYY-MM-DD");
+
+      const futurePickups = this.schedule.filter(p =>
+        p.pickupDate.isSameOrAfter(moment().startOf("day"))
       );
+
+      if (futurePickups.length <= this.config.alertThreshold) {
+
+        if (this.lastAlertDate !== todayStr) {
+
+          this.sendSocketNotification(
+            "MMM-MYGARBAGE-NOENTRIES" + payload.instanceId,
+            futurePickups.length
+          );
+
+          this.lastAlertDate = todayStr;
+        }
+      }
+    }
 
     this.sendSocketNotification(
       "MMM-MYGARBAGE-RESPONSE" + payload.instanceId,
