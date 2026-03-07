@@ -45,9 +45,9 @@ Add the module to your modules array in your config.js.
                 debug: false,                               // Only set on true for debugging 
                 binColors: {                                // Define custom Bin Colors
                             GreenBin: "#00A651",
-                            PaperBin: "#0059ff",
+                            PaperBin: "#0059FF",
                             GarbageBin: "#787878",
-                            PMDBin: "#ffff00",
+                            PMDBin: "#FFFF00",
                             OtherBin: "#B87333"
                             },
                 icalBinMap: {                                // Map iCal event names to standard bin names
@@ -63,6 +63,8 @@ Add the module to your modules array in your config.js.
 
 ## Module configuration
 Here is the documentation of options for the modules configuration:
+| `Option`                |`Description`
+| `weeksToDisplay`        |
 
 <table>
   <thead>
@@ -172,7 +174,7 @@ Save the file as `garbage_schedule.csv` in the `MMM-MyGarbage` directory and res
 ## License
 ### The MIT License (MIT)
 
-Copyright © 2019 Harm Tilburgs
+Copyright © 2019-2026 Harm Tilburgs
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -191,4 +193,5 @@ Now it has become a general script, to use in all areas all over the world.
 2.0.1        : Update for Streamline date parsing and allow for recurring events in ical (thx to @thepagan) </br>
 2.1.0        : Update for CSV file and ```alertThreshold``` (add to your config.js!) </br>
 2.1.1        : bugfix for the ```alertThreshold``` </br>
-2.1.2        : Update for rare AxiosError [AggregateError] when loading iCal
+2.1.2        : Update for rare AxiosError [AggregateError] when loading iCal </br>
+3.0.0        : Add support for flexible numbers of Bins
