@@ -5,6 +5,16 @@ const axios = require("axios");
 const ical = require("node-ical");
 const { parse } = require("csv-parse");
 
+// ANSI colors for console
+const binColorsANSI = {
+  GreenBin: "\x1b[32m",   // Green
+  PaperBin: "\x1b[34m",   // Blue
+  GarbageBin: "\x1b[90m", // Gray
+  PMDBin: "\x1b[33m",     // Yellow
+  OtherBin: "\x1b[35m",   // Magenta
+  reset: "\x1b[0m"
+};
+
 module.exports = NodeHelper.create({
 
   start() {
@@ -58,7 +68,8 @@ module.exports = NodeHelper.create({
           console.log("[MyGarbage] CSV Loaded. Total entries:", this.schedule.length);
           this.schedule.forEach(p => {
             const dateStr = p.pickupDate.isValid() ? p.pickupDate.format("YYYY-MM-DD") : String(p.pickupDate);
-            console.log(`[MyGarbage] CSV Pickup: ${dateStr} -> ${p.bins.join(", ")}`);
+            const binsStr = p.bins.map(bin => (binColorsANSI[bin] || "") + bin + binColorsANSI.reset).join(", ");
+            console.log(`[MyGarbage] CSV Pickup: ${dateStr} -> ${binsStr}`);
           });
         }
 
@@ -119,7 +130,8 @@ module.exports = NodeHelper.create({
         console.log("[MyGarbage] iCal processed. Total pickups:", this.schedule.length);
         this.schedule.forEach(p => {
           const dateStr = p.pickupDate.isValid() ? p.pickupDate.format("YYYY-MM-DD") : String(p.pickupDate);
-          console.log(`[MyGarbage] iCal Pickup: ${dateStr} -> ${p.bins.join(", ")}`);
+          const binsStr = p.bins.map(bin => (binColorsANSI[bin] || "") + bin + binColorsANSI.reset).join(", ");
+          console.log(`[MyGarbage] iCal Pickup: ${dateStr} -> ${binsStr}`);
         });
       }
 
@@ -136,7 +148,6 @@ module.exports = NodeHelper.create({
       .map(p=>({ pickupDate: p.pickupDate.toISOString(), bins: p.bins }))
       .sort((a,b)=>new Date(a.pickupDate)-new Date(b.pickupDate));
 
-    // CSV alert
     if (payload.dataSource==="csv" && this.config.alert===true && typeof this.config.alertThreshold==="number") {
       const todayStr = moment().format("YYYY-MM-DD");
       const futurePickups = this.schedule.filter(p=>p.pickupDate.isSameOrAfter(moment().startOf("day")));
