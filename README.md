@@ -88,7 +88,7 @@ Default there are 5 bins defined. If you need more garbage bins, simply add an e
 As of v3.0.0 of the module you can add custom names in the CSV of rename current names. As long as you change your `binColors` in `config.js` with the correspending names, you will see the information with the correct collors. 
 
 <b>Remark</b>
-Any Bin name that is not or not correct matched with the name in binColors, will be shown in the color $\color{#F542CE}{\textsf{PURPLE}}$ 
+Any Bin name that is not or not correct matched with the name in binColors, will be shown in the color $\color{#ED2DB0}{\textsf{PURPLE}}$ 
 
 Add lines for each garbage pickup date as needed.
 The date format needs to be specified as `MM/DD/YY` (e.g.: 05/28/18 for 28-May-2018)
