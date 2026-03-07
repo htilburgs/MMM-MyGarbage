@@ -37,6 +37,7 @@ module.exports = NodeHelper.create({
     }
   },
 
+  // --- CSV Loader ---
   loadCSV(payload) {
     if (this.schedule.length !== 0) {
       this.sendNextPickups(payload);
@@ -46,16 +47,10 @@ module.exports = NodeHelper.create({
     if (this.debug) console.log("[MyGarbage] Loading CSV file:", this.garbageScheduleCSVFile);
 
     fs.readFile(this.garbageScheduleCSVFile, "utf8", (err, rawData) => {
-      if (err) {
-        console.error("[MyGarbage] CSV read error:", err);
-        return;
-      }
+      if (err) { console.error("[MyGarbage] CSV read error:", err); return; }
 
       parse(rawData, { columns: true, delimiter: ",", ltrim: true }, (err, data) => {
-        if (err) {
-          console.error("[MyGarbage] CSV parse error:", err);
-          return;
-        }
+        if (err) { console.error("[MyGarbage] CSV parse error:", err); return; }
 
         this.schedule = data;
         this.processCSV();
@@ -87,6 +82,7 @@ module.exports = NodeHelper.create({
     });
   },
 
+  // --- iCal Loader ---
   async loadICal(payload) {
     try {
       if (this.debug) console.log("[MyGarbage] Loading iCal from:", payload.icalUrl);
@@ -136,16 +132,25 @@ module.exports = NodeHelper.create({
     }
   },
 
+  normalizePickupBins(pickup) {
+    return {
+      pickupDate: moment.isMoment(pickup.pickupDate)
+        ? pickup.pickupDate.toISOString()
+        : moment(pickup.pickupDate).toISOString(),
+      bins: pickup.bins
+    };
+  },
+
   sendNextPickups(payload) {
     const start = moment().startOf("day");
     const end = moment().add(payload.weeksToDisplay * 7, "days");
 
     const nextPickups = this.schedule
       .filter(p => p.pickupDate.isBetween(start, end, null, "[)"))
-      .map(p => ({ pickupDate: p.pickupDate.toISOString(), bins: p.bins }))
+      .map(p => this.normalizePickupBins(p))
       .sort((a, b) => new Date(a.pickupDate) - new Date(b.pickupDate));
 
-    // CSV alert
+    // --- CSV Alert ---
     if (payload.dataSource === "csv" && this.config.alert === true && typeof this.config.alertThreshold === "number") {
       const todayStr = moment().format("YYYY-MM-DD");
       const futurePickups = this.schedule.filter(p => p.pickupDate.isSameOrAfter(moment().startOf("day")));
