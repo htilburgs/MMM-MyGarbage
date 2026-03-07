@@ -63,8 +63,10 @@ Add the module to your modules array in your config.js.
 
 ## Module configuration
 Here is the documentation of options for the modules configuration:
-| `Option`                |`Description`
-| `weeksToDisplay`        |
+| Option                | Description
+|:----------------------|:-------------
+| `weeksToDisplay`        | How many weeks into the future to show collection dates.<br/><br/><b>Number</b><br/>Default: `2`
+
 
 <table>
   <thead>
