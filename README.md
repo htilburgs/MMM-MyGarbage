@@ -157,6 +157,18 @@ The original script is from Jeff Clarke `MMM-MyWastePickup` and only for the Tor
 Now it has become a general script, to use in all areas all over the world. 
 
 ## Versions
+#### v3.0.0 (07-03-2026)
+* Add support for flexible numbers of Bins
+* Bin names are automaticly detected
+* Match bin colors to bin names for csv and ical
+* Better debug information in console and in module
+* Clean up code
+
+#### 2.1.2 (03-03-2026)
+* Update for rare AxiosError [AggregateError] when loading iCal
+
+#### v1.0.0 (Initial Release)
+
 1.0.0        : Initial version </br>
 1.0.1        : Minor changes </br>
 2.0.0        : Changed for use with CSV or with iCal Calendar </br>
