@@ -65,7 +65,11 @@ Add the module to your modules array in your config.js.
 Here is the documentation of options for the modules configuration:
 | Option                | Description
 |:----------------------|:-------------
-| `weeksToDisplay`        | How many weeks into the future to show collection dates.<br/><br/><b>Number</b><br/>Default: `2`
+|`weeksToDisplay`        | How many weeks into the future to show collection dates.<br/><br/><b>Number</b><br/>Default: `2`
+|`limitTo`               | Limit the display to the spcified number of pickups<br/><br/><b>Number</b><br/>Default: `99`
+|`dateFormat`            | Format to use for the date of events <br/><br/><b>Default:</b> `dddd D MMMM` (e.g. January 18)<br/><b>Possible values: </b>See https://momentjs.com/</td>
+|`alert`                | Show alert, if remaining entries in CSV file fall under threshold<br/><br/><b>Default: </b>`false`<br/><b>Possible values: </b>`true` or `false`
+|`alertThreshold<`        | (optional) Threshold entries left in CSV file<br/><br/><b>Number</b><br/>Default: `5`
 
 
 <table>
@@ -76,22 +80,7 @@ Here is the documentation of options for the modules configuration:
     </tr>
   </thead>
   <tbody>
-    <tr>
-      <td><code>weeksToDisplay</code></td>
-      <td>How many weeks into the future to show collection dates.<br /><br /><strong>Number</strong><br />Default: <code>2</code></td>
-    </tr>
-    <tr>
-      <td><code>limitTo</code></td>
-      <td>Limit the display to the spcified number of pickups.<br /><br /><strong>Number</strong><br />Default: <code>99</code></td>
-    </tr>
-    <tr>
-      <td><code>dateFormat</code></td>
-      <td>Format to use for the date of events <br /><br /><strong>Default: </strong><code>dddd D MMMM</code> (e.g. January 18)<br /><strong>Possible values: </strong>See https://momentjs.com/</td>
-    </tr>
-    <tr>
-      <td><code>alert</code></td>
-      <td>(optional) Show alert, if remaining entries in csv file fall under threshold<br /><br /><strong>Default:</strong><code>false</code><br /><strong>Possible values: </strong><code>true</code> or <code>false</code><br /></td>
-    </tr>
+
     <tr>
       <td><code>alertThreshold</code></td>
       <td>(optional) Threshold entries left in CSV file<br /><br /><strong>Number</strong><br />Default: <code>5</code> <br /></td>
