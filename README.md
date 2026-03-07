@@ -40,23 +40,16 @@ Add the module to your modules array in your config.js.
                 alertThreshold: 5, 
                 fade:true,
                 fadePoint: 0.25,
-                dataSource: "csv",                         // csv (schedule_garbage.csv | ical (put URL in icalUrl)
+                dataSource: "csv",                          // csv (schedule_garbage.csv | ical (put URL in icalUrl)
                 icalUrl: "PLACE_HERE_PUBLIC_ICAL_URL",      // only used if dataSource is "ical"
                 debug: false,                               // Only set on true for debugging 
-                binColors: {                                // Define custom Bin Colors
+                binColors: {                                // Define custom Bin Colors and match Bin Names
                             GreenBin: "#00A651",
                             PaperBin: "#0059FF",
                             GarbageBin: "#787878",
                             PMDBin: "#FFFF00",
                             OtherBin: "#B87333"
                             },
-                icalBinMap: {                                // Map iCal event names to standard bin names
-                            "PAPIER": "PaperBin",
-                            "GFT": "GreenBin",
-                            "PMD": "PMDBin",
-                            "REST": "GarbageBin",
-                            "KERSTBOOM": "OtherBin",
-                            }
                 }
 },
 ```
@@ -69,40 +62,13 @@ Here is the documentation of options for the modules configuration:
 |`limitTo`               | Limit the display to the spcified number of pickups<br/><br/><b>Number</b><br/>Default: `99`
 |`dateFormat`            | Format to use for the date of events <br/><br/><b>Default:</b> `dddd D MMMM` (e.g. January 18)<br/><b>Possible values: </b>See https://momentjs.com/</td>
 |`alert`                | Show alert, if remaining entries in CSV file fall under threshold<br/><br/><b>Default: </b>`false`<br/><b>Possible values: </b>`true` or `false`
-|`alertThreshold<`        | (optional) Threshold entries left in CSV file<br/><br/><b>Number</b><br/>Default: `5`
+|`alertThreshold`        | (optional) Threshold entries left in CSV file<br/><br/><b>Number</b><br/>Default: `5`
 |`fade`                | Fade the future events to black. (Gradient).<br/><br/><b>Default: </b>`true`<br/><<b>Possible values: </b>`true` or `false`
 |`fadePoint`                | Where to start fade <br/><br/><b>Default: </b>`0.25`<br/><b>Posibble values: </b>Between `0` (top of the list) and `1` (bottom of list)
 |`dataSource`        | Select the datasource you're using<br/><br/><b>Default: </b>`csv`<br/><br/><b>Possible values: </b>`csv` or `ical`
 |`icalUrl`        | Fill in your (public) ical URL<br/>Only use in combination with dataSource: `ical` 
 |`debug`        | For debugging the module when failure or testing<br/><br/><b>Default: </b>`false`<br/><b>Possible values: </b>`false` or `true`
 |`binColors`        | Define your own Bin Colors - Bin names have to match you're names from CSV.<br/>When using `ical` match also `icalBinMap`
-|`icalBinMap`        | Match the Bin name in your ical with 
-
-
-
-<table>
-  <thead>
-  </thead>
-  <tbody>
-<tr>
-      <td><code>debug</code></td>
-      <td>For debugging the module when failure<br /><strong><br />Default: </strong><code>false</code><br /><strong>Possible values: </strong><code>true</code> or <code>false</code>
-      </td>
-    </tr>
- <tr>
-      <td><code>binColors</code></td>
-      <td>Define your own Bin Colors<br />
-      </td>
-    </tr>
-<tr>
-      <td><code>icalBinMap</code></td>
-      <td>Define the <strong>EXACT</strong> names as provided in the iCal Calendar.<br />The names will be matches with the type of Bin.<br />If there is no match, otherBin wil be used.<br/>
-      </td>
-    </tr>
-  </tbody>
-</table>
-  </tbody>
-</table>
 
 ## Creating and using your Garbage Schedule for use with dataSource CSV
 You can use this module by creating your own Garbage Schedule file with the name `garbage_schedule.csv` 
