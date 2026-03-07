@@ -130,6 +130,7 @@ Now it has become a general script, to use in all areas all over the world.
 * Add support for flexible numbers of Bins
 * Bin names are automaticly detected
 * Match bin colors to bin names for csv and ical
+* Error message instead of "Loading....." when the CSV or ICAL are in wrong format
 * Better debug information in console and in module
 * Clean up code
 
