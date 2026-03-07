@@ -39,6 +39,7 @@ Module.register("MMM-MyGarbage", {
     Log.info("Starting module: " + this.name);
     this.nextPickups = [];
     this.timer = null;
+    this.errorMessage = null; // <-- store CSV/iCal errors
     this.sendSocketNotification("MMM-MYGARBAGE-CONFIG", this.config);
     this.getPickups();
   },
@@ -57,8 +58,18 @@ Module.register("MMM-MyGarbage", {
   },
 
   socketNotificationReceived(notification, payload) {
+
+    // --- Handle errors ---
+    if (notification === "MMM-MYGARBAGE-ERROR" + this.identifier) {
+      this.errorMessage = payload;
+      this.updateDom(1000);
+      return;
+    }
+
+    // --- Pickup response ---
     if (notification === "MMM-MYGARBAGE-RESPONSE" + this.identifier && Array.isArray(payload)) {
       this.nextPickups = payload.slice().sort((a,b)=>new Date(a.pickupDate)-new Date(b.pickupDate));
+      this.errorMessage = null;
 
       if (this.config.debug) {
         const sorted = this.nextPickups.slice().sort((a,b)=>new Date(a.pickupDate)-new Date(b.pickupDate));
@@ -98,6 +109,12 @@ Module.register("MMM-MyGarbage", {
 
   getDom() {
     const wrapper = document.createElement("div");
+
+    if (this.errorMessage) {
+      wrapper.innerHTML = this.errorMessage;
+      wrapper.className = "dimmed light small";
+      return wrapper;
+    }
 
     if (this.nextPickups.length === 0) {
       wrapper.innerHTML = this.translate("LOADING");
