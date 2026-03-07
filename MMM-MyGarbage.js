@@ -6,9 +6,11 @@ Module.register("MMM-MyGarbage", {
     dateFormat: "dddd D MMMM",
     fade: true,
     fadePoint: 0.25,
-    collectionCalendar: "default",
+
     dataSource: "csv",
     icalUrl: "",
+    icalBinMap: {},
+
     debug: false,
 
     binColors: {}
@@ -33,6 +35,7 @@ Module.register("MMM-MyGarbage", {
   },
 
   start() {
+
     Log.info("Starting module: " + this.name);
 
     this.nextPickups = [];
@@ -44,14 +47,15 @@ Module.register("MMM-MyGarbage", {
   },
 
   getPickups() {
+
     clearTimeout(this.timer);
 
     this.sendSocketNotification("MMM-MYGARBAGE-GET", {
       weeksToDisplay: this.config.weeksToDisplay,
       instanceId: this.identifier,
-      collectionCalendar: this.config.collectionCalendar,
       dataSource: this.config.dataSource,
-      icalUrl: this.config.icalUrl
+      icalUrl: this.config.icalUrl,
+      icalBinMap: this.config.icalBinMap
     });
 
     this.timer = setTimeout(() => {
@@ -68,28 +72,30 @@ Module.register("MMM-MyGarbage", {
         .sort((a, b) => new Date(a.pickupDate) - new Date(b.pickupDate));
 
       if (this.config.debug) {
-        Log.info("[MyGarbage] Received pickups:", this.nextPickups);
+        Log.info("[MyGarbage] Pickups received:", this.nextPickups);
       }
 
       this.updateDom(1000);
     }
   },
 
-  capFirst(string) {
-    return string.charAt(0).toUpperCase() + string.slice(1);
+  capFirst(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
   },
 
-  svgIconFactory(binKey) {
+  svgIconFactory(bin) {
 
     const color =
-      (this.config.binColors && this.config.binColors[binKey]) ||
+      (this.config.binColors && this.config.binColors[bin]) ||
       "#787878";
 
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+
     svg.setAttribute("class", "garbage-icon");
     svg.style.fill = color;
 
     const use = document.createElementNS("http://www.w3.org/2000/svg", "use");
+
     use.setAttributeNS(
       "http://www.w3.org/1999/xlink",
       "href",
@@ -115,34 +121,43 @@ Module.register("MMM-MyGarbage", {
     let fadeSteps = 0;
 
     if (this.config.fade && this.config.fadePoint > 0 && this.config.fadePoint < 1) {
-      startFade = Math.min(this.nextPickups.length, this.config.limitTo) * this.config.fadePoint;
-      fadeSteps = Math.min(this.nextPickups.length, this.config.limitTo) - startFade;
+
+      startFade =
+        Math.min(this.nextPickups.length, this.config.limitTo) *
+        this.config.fadePoint;
+
+      fadeSteps =
+        Math.min(this.nextPickups.length, this.config.limitTo) - startFade;
     }
 
     for (let i = 0; i < this.nextPickups.length && i < this.config.limitTo; i++) {
 
       const pickup = this.nextPickups[i];
 
-      const pickupContainer = document.createElement("div");
-      pickupContainer.classList.add("garbage-container");
+      const container = document.createElement("div");
+      container.classList.add("garbage-container");
 
       const dateContainer = document.createElement("span");
       dateContainer.classList.add("garbage-date");
 
       const today = moment().startOf("day");
-      const pickUpDate = moment(pickup.pickupDate);
+      const pickupDate = moment(pickup.pickupDate);
 
-      if (today.isSame(pickUpDate)) {
+      if (today.isSame(pickupDate)) {
         dateContainer.innerHTML = this.translate("TODAY");
-      } else if (today.clone().add(1, "days").isSame(pickUpDate)) {
+      }
+      else if (today.clone().add(1, "days").isSame(pickupDate)) {
         dateContainer.innerHTML = this.translate("TOMORROW");
-      } else if (today.clone().add(7, "days").isAfter(pickUpDate)) {
-        dateContainer.innerHTML = this.capFirst(pickUpDate.format("dddd"));
-      } else {
-        dateContainer.innerHTML = this.capFirst(pickUpDate.format(this.config.dateFormat));
+      }
+      else if (today.clone().add(7, "days").isAfter(pickupDate)) {
+        dateContainer.innerHTML = this.capFirst(pickupDate.format("dddd"));
+      }
+      else {
+        dateContainer.innerHTML =
+          this.capFirst(pickupDate.format(this.config.dateFormat));
       }
 
-      pickupContainer.appendChild(dateContainer);
+      container.appendChild(dateContainer);
 
       const iconContainer = document.createElement("span");
       iconContainer.classList.add("garbage-icon-container");
@@ -151,13 +166,14 @@ Module.register("MMM-MyGarbage", {
         iconContainer.appendChild(this.svgIconFactory(bin));
       });
 
-      pickupContainer.appendChild(iconContainer);
+      container.appendChild(iconContainer);
 
       if (i >= startFade && fadeSteps > 0) {
-        pickupContainer.style.opacity = 1 - ((i - startFade) / fadeSteps);
+        container.style.opacity =
+          1 - ((i - startFade) / fadeSteps);
       }
 
-      wrapper.appendChild(pickupContainer);
+      wrapper.appendChild(container);
     }
 
     return wrapper;
