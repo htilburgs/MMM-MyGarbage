@@ -70,42 +70,21 @@ Here is the documentation of options for the modules configuration:
 |`dateFormat`            | Format to use for the date of events <br/><br/><b>Default:</b> `dddd D MMMM` (e.g. January 18)<br/><b>Possible values: </b>See https://momentjs.com/</td>
 |`alert`                | Show alert, if remaining entries in CSV file fall under threshold<br/><br/><b>Default: </b>`false`<br/><b>Possible values: </b>`true` or `false`
 |`alertThreshold<`        | (optional) Threshold entries left in CSV file<br/><br/><b>Number</b><br/>Default: `5`
+|`fade`                | Fade the future events to black. (Gradient).<br/><br/><b>Default: </b>`true`<br/><<b>Possible values: </b>`true` or `false`
+|`fadePoint`                | Where to start fade <br/><br/><b>Default: </b>`0.25`<br/><b>Posibble values: </b>Between `0` (top of the list) and `1` (bottom of list)
+|`dataSource`        | Select the datasource you're using<br/><br/><b>Default: </b>`csv`<br/><br/><b>Possible values: </b>`csv` or `ical`
+|`icalUrl`        | Fill in your (public) ical URL<br/>Only use in combination with dataSource: `ical` 
+|`debug`        | For debugging the module when failure or testing<br/><br/><b>Default: </b>`false`<br/><b>Possible values: </b>`false` or `true`
+|`binColors`        | Define your own Bin Colors - Bin names have to match you're names from CSV.<br/>When using `ical` match also `icalBinMap`
+|`icalBinMap`        | Match the Bin name in your ical with 
+
 
 
 <table>
   <thead>
-    <tr>
-      <th>Option</th>
-      <th>Description</th>
-    </tr>
   </thead>
   <tbody>
-
-    <tr>
-      <td><code>alertThreshold</code></td>
-      <td>(optional) Threshold entries left in CSV file<br /><br /><strong>Number</strong><br />Default: <code>5</code> <br /></td>
-    </tr>
-    <tr>
-      <td><code>fade</code></td>
-      <td>Fade the future events to black. (Gradient).<br /><strong><br />Default: </strong><code>true</code><br /><strong>Possible values: </strong><code>true</code> or <code>false</code>
-      </td>
-    </tr>
-        <tr>
-      <td><code>fadePoint</code></td>
-      <td>Where to start fade?<br /><strong><br />Default: </strong><code>0.25</code><br /><strong>Possible values: </strong><code>0</code> (top of the list) - <code>1</code> (bottom of list)
-      </td>
-    </tr>
-        <tr>
-      <td><code>dataSource</code></td>
-      <td>Select datasource your're using<br /><strong><br />Default: </strong><code>"csv"</code><br /><strong>Possible values: </strong><code>"csv" or "ical" </code>
-      </td>
-    </tr>
-        <tr>
-      <td><code>icalUrl</code></td>
-      <td>Fill in your (public) ical URL<br />Only use in combination with dataSourc: "ical" 
-      </td>
-    </tr>
-        <tr>
+<tr>
       <td><code>debug</code></td>
       <td>For debugging the module when failure<br /><strong><br />Default: </strong><code>false</code><br /><strong>Possible values: </strong><code>true</code> or <code>false</code>
       </td>
