@@ -110,10 +110,25 @@ Module.register("MMM-MyGarbage", {
   getDom() {
     const wrapper = document.createElement("div");
 
+    // --- Display error with red warning icon ---
     if (this.errorMessage) {
-      wrapper.innerHTML = this.errorMessage;
-      wrapper.className = "dimmed light small";
-      return wrapper;
+      const errorDiv = document.createElement("div");
+      errorDiv.className = "dimmed light small";
+      errorDiv.style.color = "red";
+      errorDiv.style.fontWeight = "bold";
+      errorDiv.style.display = "flex";
+      errorDiv.style.alignItems = "center";
+      errorDiv.style.gap = "5px";
+
+      const icon = document.createElement("span");
+      icon.innerHTML = "⚠️";
+      errorDiv.appendChild(icon);
+
+      const msg = document.createElement("span");
+      msg.innerHTML = this.errorMessage;
+      errorDiv.appendChild(msg);
+
+      return errorDiv;
     }
 
     if (this.nextPickups.length === 0) {
