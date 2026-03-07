@@ -43,12 +43,12 @@ Add the module to your modules array in your config.js.
                 dataSource: "csv",                          // csv (schedule_garbage.csv | ical (put URL in icalUrl)
                 icalUrl: "PLACE_HERE_PUBLIC_ICAL_URL",      // only used if dataSource is "ical"
                 debug: false,                               // Only set on true for debugging 
-                binColors: {                                // Define custom Bin Colors and match Bin Names
-                            GreenBin: "#00A651",
-                            PaperBin: "#0059FF",
-                            GarbageBin: "#787878",
-                            PMDBin: "#FFFF00",
-                            OtherBin: "#B87333"
+                binColors: {                                // Define custom Bin Colors and match with the Bin Names
+                            "GreenBin" : "#00A651",
+                            "PaperBin" : "#0059FF",
+                            "GarbageBin" : "#787878",
+                            "PMDBin" : "#FFFF00",
+                            "OtherBin" : "#B87333"
                             },
                 }
 },
