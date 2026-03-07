@@ -164,16 +164,19 @@ Now it has become a general script, to use in all areas all over the world.
 * Better debug information in console and in module
 * Clean up code
 
-#### 2.1.2 (03-03-2026)
+#### v2.1.2 (02-03-2026)
 * Update for rare AxiosError [AggregateError] when loading iCal
 
-#### v1.0.0 (Initial Release)
+#### v2.1.1 (17-02-2026)
+* Bugfix for the ```alertTreshold```
 
-1.0.0        : Initial version </br>
-1.0.1        : Minor changes </br>
-2.0.0        : Changed for use with CSV or with iCal Calendar </br>
-2.0.1        : Update for Streamline date parsing and allow for recurring events in ical (thx to @thepagan) </br>
-2.1.0        : Update for CSV file and ```alertThreshold``` (add to your config.js!) </br>
-2.1.1        : bugfix for the ```alertThreshold``` </br>
-2.1.2        : Update for rare AxiosError [AggregateError] when loading iCal </br>
-3.0.0        : Add support for flexible numbers of Bins
+#### v2.1.0 (16-02-2026)
+* Update for CSV file and ```alertThreshold``` (add to config.js!)
+
+#### v2.0.1 (2025)
+* Update for Streamline date parsing and allow for recurring events in ical (thx to @thepagan)
+
+#### v2.0.0 (2025)
+* Changed for use with CSV or with iCal Calendar
+
+#### v1.0.0 (Initial Release 2019)
