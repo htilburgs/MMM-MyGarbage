@@ -37,13 +37,19 @@ module.exports = NodeHelper.create({
   loadCSV(payload) {
     if(this.schedule.length) { this.sendNextPickups(payload); return; }
 
-    if(this.debug) console.log("[MyGarbage] Loading CSV:", this.garbageScheduleCSVFile);
-
     fs.readFile(this.garbageScheduleCSVFile,"utf8",(err,rawData)=>{
-      if(err){ console.error("[MyGarbage] CSV read error:",err); return; }
+      if(err){
+        console.error("[MyGarbage] CSV read error:",err);
+        this.sendSocketNotification("MMM-MYGARBAGE-ERROR"+payload.instanceId,"CSV read error!");
+        return;
+      }
 
       parse(rawData,{columns:true,delimiter:",",ltrim:true},(err,data)=>{
-        if(err){ console.error("[MyGarbage] CSV parse error:",err); return; }
+        if(err){
+          console.error("[MyGarbage] CSV parse error:",err);
+          this.sendSocketNotification("MMM-MYGARBAGE-ERROR"+payload.instanceId,"CSV wrong format!");
+          return;
+        }
 
         this.schedule = data.map(row=>{
           const pickupDate = row.pickupDate ? moment(row.pickupDate) : moment(row.WeekStarting,["YYYY-MM-DD","MM/DD/YY"]);
@@ -99,7 +105,10 @@ module.exports = NodeHelper.create({
 
       this.sendNextPickups(payload);
 
-    } catch(err){ console.error("[MyGarbage] iCal error:",err.message); }
+    } catch(err){ 
+      console.error("[MyGarbage] iCal error:",err.message);
+      this.sendSocketNotification("MMM-MYGARBAGE-ERROR"+payload.instanceId,"iCal load error!");
+    }
   },
 
   normalizePickupBins(pickup){
