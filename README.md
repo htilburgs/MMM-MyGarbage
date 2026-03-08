@@ -3,7 +3,7 @@ This a module for [MagicMirror²](https://github.com/MichMich/MagicMirror).
 This displays the schedule for your Garbage pickup. It supports multiple types of garbage bins.
 You can show the schedule using a CSV file (garbage_schedule.csv) of by using an ical URL.
 
-![Screenshot](screenshot.png)
+<img width="402" height="218" alt="SCR-20260308-ppuu" src="https://github.com/user-attachments/assets/f1ae93b7-1bfe-4d1f-94d9-fed3b2f5ab3a" />
 
 ## Installation
 Clone this repository in your modules folder, and install dependencies:
