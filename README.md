@@ -3,7 +3,7 @@ This a module for [MagicMirror²](https://github.com/MichMich/MagicMirror).
 This displays the schedule for your Garbage pickup. It supports multiple types of garbage bins.
 You can show the schedule using a CSV file (garbage_schedule.csv) of by using an ical URL.
 
-![Screenshot](screenshot.png)
+<img width="402" height="218" alt="SCR-20260308-ppuu" src="https://github.com/user-attachments/assets/f1ae93b7-1bfe-4d1f-94d9-fed3b2f5ab3a" />
 
 ## Installation
 Clone this repository in your modules folder, and install dependencies:
@@ -40,100 +40,38 @@ Add the module to your modules array in your config.js.
                 alertThreshold: 5, 
                 fade:true,
                 fadePoint: 0.25,
-                dataSource: "csv",                         // csv (schedule_garbage.csv | ical (put URL in icalUrl)
+                dataSource: "csv",                          // csv (schedule_garbage.csv | ical (put URL in icalUrl)
                 icalUrl: "PLACE_HERE_PUBLIC_ICAL_URL",      // only used if dataSource is "ical"
                 debug: false,                               // Only set on true for debugging 
-                binColors: {                                // Define custom Bin Colors
-                            GreenBin: "#00A651",
-                            PaperBin: "#0059ff",
-                            GarbageBin: "#787878",
-                            PMDBin: "#ffff00",
-                            OtherBin: "#B87333"
+                binColors: {                                // Define custom Bin Colors and match with the Bin Names
+                            "GreenBin" : "#00A651",
+                            "PaperBin" : "#0059FF",
+                            "GarbageBin" : "#787878",
+                            "PMDBin" : "#FFFF00",
+                            "OtherBin" : "#B87333"
                             },
-                icalBinMap: {                                // Map iCal event names to standard bin names
-                            "PAPIER": "PaperBin",
-                            "GFT": "GreenBin",
-                            "PMD": "PMDBin",
-                            "REST": "GarbageBin",
-                            "KERSTBOOM": "OtherBin",
-                            }
                 }
 },
 ```
 
 ## Module configuration
 Here is the documentation of options for the modules configuration:
-
-<table>
-  <thead>
-    <tr>
-      <th>Option</th>
-      <th>Description</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code>weeksToDisplay</code></td>
-      <td>How many weeks into the future to show collection dates.<br /><br /><strong>Number</strong><br />Default: <code>2</code></td>
-    </tr>
-    <tr>
-      <td><code>limitTo</code></td>
-      <td>Limit the display to the spcified number of pickups.<br /><br /><strong>Number</strong><br />Default: <code>99</code></td>
-    </tr>
-    <tr>
-      <td><code>dateFormat</code></td>
-      <td>Format to use for the date of events <br /><br /><strong>Default: </strong><code>dddd D MMMM</code> (e.g. January 18)<br /><strong>Possible values: </strong>See https://momentjs.com/</td>
-    </tr>
-    <tr>
-      <td><code>alert</code></td>
-      <td>(optional) Show alert, if remaining entries in csv file fall under threshold<br /><br /><strong>Default:</strong><code>false</code><br /><strong>Possible values: </strong><code>true</code> or <code>false</code><br /></td>
-    </tr>
-    <tr>
-      <td><code>alertThreshold</code></td>
-      <td>(optional) Threshold entries left in CSV file<br /><br /><strong>Number</strong><br />Default: <code>5</code> <br /></td>
-    </tr>
-    <tr>
-      <td><code>fade</code></td>
-      <td>Fade the future events to black. (Gradient).<br /><strong><br />Default: </strong><code>true</code><br /><strong>Possible values: </strong><code>true</code> or <code>false</code>
-      </td>
-    </tr>
-        <tr>
-      <td><code>fadePoint</code></td>
-      <td>Where to start fade?<br /><strong><br />Default: </strong><code>0.25</code><br /><strong>Possible values: </strong><code>0</code> (top of the list) - <code>1</code> (bottom of list)
-      </td>
-    </tr>
-        <tr>
-      <td><code>dataSource</code></td>
-      <td>Select datasource your're using<br /><strong><br />Default: </strong><code>"csv"</code><br /><strong>Possible values: </strong><code>"csv" or "ical" </code>
-      </td>
-    </tr>
-        <tr>
-      <td><code>icalUrl</code></td>
-      <td>Fill in your (public) ical URL<br />Only use in combination with dataSourc: "ical" 
-      </td>
-    </tr>
-        <tr>
-      <td><code>debug</code></td>
-      <td>For debugging the module when failure<br /><strong><br />Default: </strong><code>false</code><br /><strong>Possible values: </strong><code>true</code> or <code>false</code>
-      </td>
-    </tr>
- <tr>
-      <td><code>binColors</code></td>
-      <td>Define your own Bin Colors<br />
-      </td>
-    </tr>
-<tr>
-      <td><code>icalBinMap</code></td>
-      <td>Define the <strong>EXACT</strong> names as provided in the iCal Calendar.<br />The names will be matches with the type of Bin.<br />If there is no match, otherBin wil be used.<br/>
-      </td>
-    </tr>
-  </tbody>
-</table>
-  </tbody>
-</table>
+| Option                | Description
+|:----------------------|:-------------
+|`weeksToDisplay`        | How many weeks into the future to show collection dates.<br/><br/><b>Number</b><br/>Default: `2`
+|`limitTo`               | Limit the display to the spcified number of pickups<br/><br/><b>Number</b><br/>Default: `99`
+|`dateFormat`            | Format to use for the date of events <br/><br/><b>Default:</b> `dddd D MMMM` (e.g. January 18)<br/><b>Possible values: </b>See https://momentjs.com/</td>
+|`alert`                | Show alert, if remaining entries in CSV file fall under threshold<br/><br/><b>Default: </b>`false`<br/><b>Possible values: </b>`true` or `false`
+|`alertThreshold`        | (optional) Threshold entries left in CSV file<br/><br/><b>Number</b><br/>Default: `5`
+|`fade`                | Fade the future events to black. (Gradient).<br/><br/><b>Default: </b>`true`<br/><<b>Possible values: </b>`true` or `false`
+|`fadePoint`                | Where to start fade <br/><br/><b>Default: </b>`0.25`<br/><b>Posibble values: </b>Between `0` (top of the list) and `1` (bottom of list)
+|`dataSource`        | Select the datasource you're using<br/><br/><b>Default: </b>`csv`<br/><b>Possible values: </b>`csv` or `ical`
+|`icalUrl`        | Fill in your (public) ical URL<br/>Only use in combination with dataSource: `ical` 
+|`debug`        | For debugging the module when failure or testing<br/><br/><b>Default: </b>`false`<br/><b>Possible values: </b>`false` or `true`
+|`binColors`        | Define your own Bin Colors - Bin names have to match you're names from CSV.<br/>When using `ical` match also `icalBinMap`
 
 ## Creating and using your Garbage Schedule for use with dataSource CSV
-You can use this module by creating your own Garbage Schedule file with the name `garbage_schedule.csv` 
+You can use this module by creating your own Garbage Schedule file with the name `garbage_schedule.csv` <br/>
 An example file `garbage_schedule.csv` is added.
 
 Create a CSV based on the following template:
@@ -146,33 +84,36 @@ WeekStarting,GreenBin,GarbageBin,PaperBin,PMDBin,OtherBin
 03/28/18,1,1,1,1,0
 ```
 
-Default there are 3 bins defined (green, gray and blue) If you need more garbage bins, simply add an extra column in the `garbage_schedule.csv` file. The name is the color you like the bin to have. 
+Default there are 5 bins defined. If you need more garbage bins, simply add an extra column in the `garbage_schedule.csv` file, with the name of the extra bin. If you only need 3, then simply remove them. When the module is started, it reads the names and will try them to match to the `binColors`.
+As of v3.0.0 of the module you can add custom names in the CSV of rename current names. As long as you change your `binColors` in `config.js` with the correspending names, you will see the information with the correct collors. 
+
+<b>Remark</b>
+Any Bin name that is not or not correct matched with the name in binColors, will be shown in the color $\color{#ED2DB0}{\textsf{PURPLE}}$ 
 
 Add lines for each garbage pickup date as needed.
 The date format needs to be specified as `MM/DD/YY` (e.g.: 05/28/18 for 28-May-2018)
-
 Colors can be defined in the config.js file:
 * Legacy Values:
   * GreenBin (defaults to #00A651)
   * GarbageBin (defaults to #787878)
   * PaperBin (defaults to #0059ff)
   * PMDBin (defaults to #ffff00)
-  * OtherBin (defaults to #B87333)
+  * OtherBin (defaults to #F542CE)
 * Any CSS color string (red, chocolate, cornflowerblue, etc..)
 * Any HEX-Color (#FF0000, #8c8c8c, etc)
 * Any rgb, rgba or hsl value **if in double quotes** ("rgb(128,65,98)", "rgba(134,56,32,0.5)", "hsl(0, 100%, 50%)", etc.)
 
 The following is **VERY** important:
-* The CSV file must be delimited using commas
-* The date format needs to be specified as `MM/DD/YY` (e.g.: 05/28/18 for 28-May-2018)
-* The remaining fields of each line specify whether the particular waste product is scheduled to be picked up on the given date. A value of `0` means no pick up. A value of ANYTHING ELSE means the product will be picked up.  Using the first pick up date entry in the template above, `1,0,1` means that `green` and `blue` will be picked up on that date, while `gray` will not be picked up.
+* The CSV file **must** be delimited using commas
+* The date format **must** to be specified as `MM/DD/YY` (e.g.: 05/28/18 for 28-May-2018)
+* The remaining fields of each line specify whether the particular waste product is scheduled to be picked up on the given date. A value of `0` means no pick up. A value of ANYTHING ELSE means the product will be picked up.  Using the first pick up date entry in the template above, `1,0,1,0,0` means that `green` and `blue` will be picked up on that date, while the others will not be picked up.
 
 Save the file as `garbage_schedule.csv` in the `MMM-MyGarbage` directory and restart Magic Mirror²
 
 ## License
 ### The MIT License (MIT)
 
-Copyright © 2019 Harm Tilburgs
+Copyright © 2019-2026 Harm Tilburgs
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -185,10 +126,27 @@ The original script is from Jeff Clarke `MMM-MyWastePickup` and only for the Tor
 Now it has become a general script, to use in all areas all over the world. 
 
 ## Versions
-1.0.0        : Initial version </br>
-1.0.1        : Minor changes </br>
-2.0.0        : Changed for use with CSV or with iCal Calendar </br>
-2.0.1        : Update for Streamline date parsing and allow for recurring events in ical (thx to @thepagan) </br>
-2.1.0        : Update for CSV file and ```alertThreshold``` (add to your config.js!) </br>
-2.1.1        : bugfix for the ```alertThreshold``` </br>
-2.1.2        : Update for rare AxiosError [AggregateError] when loading iCal
+#### v3.0.0 (07-03-2026)
+* Add support for flexible numbers of Bins
+* Bin names are automaticly detected
+* Match bin colors to bin names for csv and ical
+* Error message instead of "Loading....." when the CSV or ICAL is in wrong format
+* Better debug information in console and in module
+* Clean up code
+
+#### v2.1.2 (02-03-2026)
+* Update for rare AxiosError [AggregateError] when loading iCal
+
+#### v2.1.1 (17-02-2026)
+* Bugfix for the ```alertTreshold```
+
+#### v2.1.0 (16-02-2026)
+* Update for CSV file and ```alertThreshold``` (add to config.js!)
+
+#### v2.0.1 (2025)
+* Update for Streamline date parsing and allow for recurring events in ical (thx to @thepagan)
+
+#### v2.0.0 (2025)
+* Changed for use with CSV or with iCal Calendar
+
+#### v1.0.0 (Initial Release 2019)
