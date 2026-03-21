@@ -88,15 +88,30 @@ module.exports = NodeHelper.create({
           const pickupDate = moment(date);
           const eventName = (ev.summary||"").toLowerCase();
 
-          let matchedBin = binKeys.find(bin=>bin===eventName) || "OtherBin";
-          matchedBin = Object.keys(this.config.binColors).find(k=>k.toLowerCase()===matchedBin) || "OtherBin";
-
-          let existing = this.schedule.find(p=>p.pickupDate.isSame(pickupDate,"day"));
-          if(!existing){ existing={pickupDate,bins:[]}; this.schedule.push(existing); }
-          if(!existing.bins.includes(matchedBin)) existing.bins.push(matchedBin);
-        });
+//update
+      let existing = this.schedule.find(p => p.pickupDate.isSame(pickupDate,"day"));
+        if (!existing) {
+          existing = { pickupDate, bins: [] };
+          this.schedule.push(existing);
+        }
+      
+        // check every configured bin name as a substring
+        Object.keys(this.config.binColors).forEach(bin => {
+        const keyword = bin.toLowerCase();
+        if (eventName.includes(keyword)) {
+          if (!existing.bins.includes(bin)) {
+          existing.bins.push(bin);
+          }
+        }  
+      });
+          
+      // if nothing matched, classify as OtherBin
+      if (existing.bins.length === 0 && !existing.bins.includes("OtherBin")) {
+        existing.bins.push("OtherBin");
+        }  
       }
-
+// end update
+                            
       if(this.debug){
         console.log("[MyGarbage] iCal processed. Total pickups:", this.schedule.length);
         const sorted = this.schedule.slice().sort((a,b)=>new Date(a.pickupDate)-new Date(b.pickupDate));
