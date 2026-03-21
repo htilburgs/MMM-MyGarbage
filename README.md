@@ -126,6 +126,10 @@ The original script is from Jeff Clarke `MMM-MyWastePickup` and only for the Tor
 Now it has become a general script, to use in all areas all over the world. 
 
 ## Versions
+#### v3.1.0 (21-03-2026)
+* Add support for combined multiple same day pickups into 1 ICS event (thanks to @PlatinumPenguin)
+* Clean up code to prevent crashes 
+
 #### v3.0.0 (07-03-2026)
 * Add support for flexible numbers of Bins
 * Bin names are automaticly detected
