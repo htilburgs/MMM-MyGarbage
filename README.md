@@ -68,7 +68,7 @@ Here is the documentation of options for the modules configuration:
 |`dataSource`        | Select the datasource you're using<br/><br/><b>Default: </b>`csv`<br/><b>Possible values: </b>`csv` or `ical`
 |`icalUrl`        | Fill in your (public) ical URL<br/>Only use in combination with dataSource: `ical` 
 |`debug`        | For debugging the module when failure or testing<br/><br/><b>Default: </b>`false`<br/><b>Possible values: </b>`false` or `true`
-|`binColors`        | Define your own Bin Colors - Bin names have to match you're names from CSV.<br/>When using `ical` match also `icalBinMap`
+|`binColors`        | Define your own Bin Colors - Bin names have to EXACTLY match you're names from CSV or iCAL.<br/>
 
 ## Creating and using your Garbage Schedule for use with dataSource CSV
 You can use this module by creating your own Garbage Schedule file with the name `garbage_schedule.csv` <br/>
@@ -85,10 +85,10 @@ WeekStarting,GreenBin,GarbageBin,PaperBin,PMDBin,OtherBin
 ```
 
 Default there are 5 bins defined. If you need more garbage bins, simply add an extra column in the `garbage_schedule.csv` file, with the name of the extra bin. If you only need 3, then simply remove them. When the module is started, it reads the names and will try them to match to the `binColors`.
-As of v3.0.0 of the module you can add custom names in the CSV of rename current names. As long as you change your `binColors` in `config.js` with the correspending names, you will see the information with the correct collors. 
+As of v3.0.0 of the module you can add custom names in the CSV or rename current names. As long as you change your `binColors` in `config.js` with the correspending names, you will see the information with the correct colors. 
 
 <b>Remark</b>
-Any Bin name that is not or not correct matched with the name in binColors, will be shown in the color $\color{#ED2DB0}{\textsf{PURPLE}}$ 
+Any Bin name that is not or not correct matched with the name in binColors, will be shown as a purple bin <img width="19" height="30" alt="SCR-20260321-icps" src="https://github.com/user-attachments/assets/3c1e95f6-e307-48ee-9de8-ebd7c61d8547" />
 
 Add lines for each garbage pickup date as needed.
 The date format needs to be specified as `MM/DD/YY` (e.g.: 05/28/18 for 28-May-2018)
@@ -104,8 +104,8 @@ Colors can be defined in the config.js file:
 * Any rgb, rgba or hsl value **if in double quotes** ("rgb(128,65,98)", "rgba(134,56,32,0.5)", "hsl(0, 100%, 50%)", etc.)
 
 The following is **VERY** important:
-* The CSV file **must** be delimited using commas
-* The date format **must** to be specified as `MM/DD/YY` (e.g.: 05/28/18 for 28-May-2018)
+* The CSV file **MUST** be delimited using commas
+* The date format **MUST** to be specified as `MM/DD/YY` (e.g.: 05/28/18 for 28-May-2018)
 * The remaining fields of each line specify whether the particular waste product is scheduled to be picked up on the given date. A value of `0` means no pick up. A value of ANYTHING ELSE means the product will be picked up.  Using the first pick up date entry in the template above, `1,0,1,0,0` means that `green` and `blue` will be picked up on that date, while the others will not be picked up.
 
 Save the file as `garbage_schedule.csv` in the `MMM-MyGarbage` directory and restart Magic Mirror²
