@@ -89,7 +89,9 @@ module.exports = NodeHelper.create({
       const events = ical.parseICS(res.data);
 
       const start = moment().startOf("day");
-      const end = moment().add(payload.weeksToDisplay * 7, "days");
+      const end = start.clone().add(payload.weeksToDisplay * 7, "days");
+//      const start = moment().startOf("day");
+//      const end = moment().add(payload.weeksToDisplay * 7, "days");
 
       const validBins = Object.keys(this.config.binColors);
       const scheduleMap = new Map(); // key = ISO date
