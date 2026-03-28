@@ -43,9 +43,6 @@ module.exports = NodeHelper.create({
     }
   },
 
-  /* ---------------------------
-     CSV LOADING (STRICT + ISO)
-  ---------------------------- */
   loadCSV(payload) {
     fs.readFile(this.garbageScheduleCSVFile, "utf8", (err, rawData) => {
       if (err) return this.sendError(payload, "CSV read error!");
@@ -71,9 +68,6 @@ module.exports = NodeHelper.create({
     });
   },
 
-  /* ---------------------------
-     ICAL LOADING (ISO + CLEAN)
-  ---------------------------- */
   async loadICal(payload) {
     try {
       if (this.debug) console.log("[MyGarbage] Loading iCal:", payload.icalUrl);
@@ -128,9 +122,6 @@ module.exports = NodeHelper.create({
     }
   },
 
-  /* ---------------------------
-     COMMON POST-LOAD HANDLER
-  ---------------------------- */
   afterLoad(payload, source) {
     this.lastLoad = moment();
 
@@ -145,10 +136,6 @@ module.exports = NodeHelper.create({
     this.sendNextPickups(payload);
   },
 
-  /* ---------------------------
-     SEND DATA TO FRONTEND
-     (future-only + rolling N weeks)
-  ---------------------------- */
   sendNextPickups(payload) {
     const today = moment().startOf("day"); // today
     const end = today.clone().add(payload.weeksToDisplay * 7, "days"); // N weeks ahead
@@ -168,9 +155,6 @@ module.exports = NodeHelper.create({
     );
   },
 
-  /* ---------------------------
-     CSV ALERT HANDLING
-  ---------------------------- */
   checkCSVThreshold(payload) {
     if (
       payload.dataSource !== "csv" ||
@@ -198,9 +182,6 @@ module.exports = NodeHelper.create({
     }
   },
 
-  /* ---------------------------
-     ERROR HANDLER
-  ---------------------------- */
   sendError(payload, message) {
     this.sendSocketNotification(
       "MMM-MYGARBAGE-ERROR" + payload.instanceId,
