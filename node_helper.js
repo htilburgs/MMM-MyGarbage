@@ -16,7 +16,7 @@ module.exports = NodeHelper.create({
 
     this.garbageScheduleCSVFile = this.path + "/garbage_schedule.csv";
 
-    // reset alert daily
+    // Reset daily alert at midnight
     const now = moment();
     const tomorrow = moment().add(1, "day").startOf("day");
     setTimeout(() => {
@@ -33,7 +33,7 @@ module.exports = NodeHelper.create({
     }
 
     if (notification === "MMM-MYGARBAGE-GET") {
-      // cache 60 minutes
+      // Use cache if within 60 minutes
       if (this.schedule.length && this.lastLoad && moment().diff(this.lastLoad, "minutes") < 60) {
         if (this.debug) console.log("[MyGarbage] Using cached data");
         return this.sendNextPickups(payload);
@@ -49,16 +49,10 @@ module.exports = NodeHelper.create({
   ---------------------------- */
   loadCSV(payload) {
     fs.readFile(this.garbageScheduleCSVFile, "utf8", (err, rawData) => {
-      if (err) {
-        console.error("[MyGarbage] CSV read error:", err);
-        return this.sendError(payload, "CSV read error!");
-      }
+      if (err) return this.sendError(payload, "CSV read error!");
 
       parse(rawData, { columns: true, delimiter: ",", ltrim: true }, (err, data) => {
-        if (err) {
-          console.error("[MyGarbage] CSV parse error:", err);
-          return this.sendError(payload, "CSV wrong format!");
-        }
+        if (err) return this.sendError(payload, "CSV wrong format!");
 
         const validBins = Object.keys(this.config.binColors);
 
@@ -68,8 +62,8 @@ module.exports = NodeHelper.create({
             : moment(row.WeekStarting, ["YYYY-MM-DD", "MM/DD/YY"]);
 
           return {
-            pickupDate: date.toISOString(), // ✅ ALWAYS ISO
-            bins: validBins.filter(bin => row[bin] && row[bin] !== "0")
+            pickupDate: date.toISOString(), // always ISO
+            bins: validBins.filter(bin => row[bin] && row[bin] !== "0") // only known bins
           };
         });
 
@@ -90,8 +84,6 @@ module.exports = NodeHelper.create({
 
       const start = moment().startOf("day");
       const end = start.clone().add(payload.weeksToDisplay * 7, "days");
-//      const start = moment().startOf("day");
-//      const end = moment().add(payload.weeksToDisplay * 7, "days");
 
       const validBins = Object.keys(this.config.binColors);
       const scheduleMap = new Map(); // key = ISO date
@@ -121,7 +113,7 @@ module.exports = NodeHelper.create({
             }
           });
 
-          // fallback
+          // fallback if no bins matched
           if (entry.bins.length === 0) {
             entry.bins.push("OtherBin");
           }
@@ -144,13 +136,11 @@ module.exports = NodeHelper.create({
     this.lastLoad = moment();
 
     if (this.debug) {
-      console.log(`[MyGarbage] ${source} loaded:`, this.schedule.length);
+      console.log(`[MyGarbage] ${source} loaded. Total pickups: ${this.schedule.length}`);
       this.schedule
         .slice()
         .sort((a, b) => new Date(a.pickupDate) - new Date(b.pickupDate))
-        .forEach(p =>
-          console.log(`[MyGarbage] ${p.pickupDate} -> ${p.bins.join(", ")}`)
-        );
+        .forEach(p => console.log(`[MyGarbage] ${p.pickupDate} -> ${p.bins.join(", ")}`));
     }
 
     this.sendNextPickups(payload);
@@ -158,13 +148,18 @@ module.exports = NodeHelper.create({
 
   /* ---------------------------
      SEND DATA TO FRONTEND
+     (calendar-week logic)
   ---------------------------- */
   sendNextPickups(payload) {
-    const start = moment().startOf("day");
-    const end = moment().add(payload.weeksToDisplay * 7, "days");
+    // --- Calendar week logic: current week + N-1 weeks ---
+    const start = moment().startOf("isoWeek"); // Monday
+    const end = start.clone().add(payload.weeksToDisplay, "weeks"); // N calendar weeks
 
     const nextPickups = this.schedule
-      .filter(p => moment(p.pickupDate).isBetween(start, end, null, "[)"))
+      .filter(p => {
+        const d = moment(p.pickupDate);
+        return d.isSameOrAfter(start) && d.isBefore(end);
+      })
       .sort((a, b) => new Date(a.pickupDate) - new Date(b.pickupDate));
 
     this.checkCSVThreshold(payload);
@@ -176,7 +171,7 @@ module.exports = NodeHelper.create({
   },
 
   /* ---------------------------
-     ALERT HANDLING
+     CSV ALERT HANDLING
   ---------------------------- */
   checkCSVThreshold(payload) {
     if (
@@ -193,7 +188,7 @@ module.exports = NodeHelper.create({
 
     if (future.length <= this.config.alertThreshold && this.lastAlertDate !== today) {
       if (this.debug) {
-        console.log(`[MyGarbage] Low entries: ${future.length}`);
+        console.log(`[MyGarbage] Low CSV entries: ${future.length}`);
       }
 
       this.sendSocketNotification(
