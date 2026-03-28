@@ -126,6 +126,11 @@ The original script is from Jeff Clarke `MMM-MyWastePickup` and only for the Tor
 Now it has become a general script, to use in all areas all over the world. 
 
 ## Versions
+#### v3.1.1 (28-03-2026)
+* Fix ```weeksToDisplay``` For example: 2 weeks are 14 days so this could end up showing 3 weeks. Now fixed to ISO weeks.
+* Normalized all dates to ISO strings
+* Improve CSV bin filtering (avoid garbage data)
+
 #### v3.1.0 (21-03-2026)
 * Add support for combined multiple same day pickups into 1 ICS event (thanks to @PlatinumPenguin)
 * Clean up code to prevent crashes 
