@@ -13,10 +13,9 @@ module.exports = NodeHelper.create({
     this.schedule = [];
     this.lastLoad = null;
     this.lastAlertDate = null;
-
     this.garbageScheduleCSVFile = this.path + "/garbage_schedule.csv";
 
-    // Reset daily alert at midnight
+    // Reset alert daily at midnight
     const now = moment();
     const tomorrow = moment().add(1, "day").startOf("day");
     setTimeout(() => {
@@ -82,8 +81,8 @@ module.exports = NodeHelper.create({
       const res = await axios.get(payload.icalUrl);
       const events = ical.parseICS(res.data);
 
-      const start = moment().startOf("day");
-      const end = start.clone().add(payload.weeksToDisplay * 7, "days");
+      const start = moment().startOf("day"); // today
+      const end = start.clone().add(payload.weeksToDisplay * 7, "days"); // future N weeks
 
       const validBins = Object.keys(this.config.binColors);
       const scheduleMap = new Map(); // key = ISO date
@@ -148,17 +147,16 @@ module.exports = NodeHelper.create({
 
   /* ---------------------------
      SEND DATA TO FRONTEND
-     (calendar-week logic)
+     (future-only + rolling N weeks)
   ---------------------------- */
   sendNextPickups(payload) {
-    // --- Calendar week logic: current week + N-1 weeks ---
-    const start = moment().startOf("isoWeek"); // Monday
-    const end = start.clone().add(payload.weeksToDisplay, "weeks"); // N calendar weeks
+    const today = moment().startOf("day"); // today
+    const end = today.clone().add(payload.weeksToDisplay * 7, "days"); // N weeks ahead
 
     const nextPickups = this.schedule
       .filter(p => {
         const d = moment(p.pickupDate);
-        return d.isSameOrAfter(start) && d.isBefore(end);
+        return d.isSameOrAfter(today) && d.isBefore(end); // only future pickups
       })
       .sort((a, b) => new Date(a.pickupDate) - new Date(b.pickupDate));
 
@@ -180,13 +178,13 @@ module.exports = NodeHelper.create({
       typeof this.config.alertThreshold !== "number"
     ) return;
 
-    const today = moment().format("YYYY-MM-DD");
+    const todayStr = moment().format("YYYY-MM-DD");
 
     const future = this.schedule.filter(p =>
       moment(p.pickupDate).isSameOrAfter(moment().startOf("day"))
     );
 
-    if (future.length <= this.config.alertThreshold && this.lastAlertDate !== today) {
+    if (future.length <= this.config.alertThreshold && this.lastAlertDate !== todayStr) {
       if (this.debug) {
         console.log(`[MyGarbage] Low CSV entries: ${future.length}`);
       }
@@ -196,7 +194,7 @@ module.exports = NodeHelper.create({
         future.length
       );
 
-      this.lastAlertDate = today;
+      this.lastAlertDate = todayStr;
     }
   },
 
